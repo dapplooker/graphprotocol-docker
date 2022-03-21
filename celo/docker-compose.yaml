@@ -2,7 +2,26 @@ version: "3"
 services:
   graph-node:
     container_name: celo-graph-indexer
-    image: graphprotocol/graph-node:v0.25.1
+    image: graphprotocol/graph-node:v0.25.2
+    depends_on:
+      - ipfs
+      - postgres
+    environment:
+      postgres_host: postgres
+      postgres_user: celo_graph_postgres
+      postgres_pass: 'changeme'
+      postgres_db: celo_graph_db
+      ipfs: "ipfs:5001"
+      ETHEREUM_POLLING_INTERVAL: 500
+      GRAPH_ETHEREUM_TARGET_TRIGGERS_PER_BLOCK_RANGE: 500
+      ETHEREUM_BLOCK_BATCH_SIZE: 100
+      GRAPH_GRAPHQL_QUERY_TIMEOUT: 60
+      EXPERIMENTAL_SUBGRAPH_VERSION_SWITCHING_MODE: synced
+      ethereum: celo:no_eip1898,archive,traces:{celo-node-url}
+      RUST_LOG: info
+  graph-node-query-0:
+    container_name: celo-graph-query-0
+    image: graphprotocol/graph-node:v0.25.2
     ports:
       - "8000:8000"
       - "8001:8001"
@@ -18,10 +37,35 @@ services:
       postgres_pass: 'changeme'
       postgres_db: celo_graph_db
       ipfs: "ipfs:5001"
-      ETHEREUM_POLLING_INTERVAL: 500
-      GRAPH_ETHEREUM_TARGET_TRIGGERS_PER_BLOCK_RANGE: 500
-      ETHEREUM_BLOCK_BATCH_SIZE: 100
-      GRAPH_GRAPHQL_QUERY_TIMEOUT: 60
+      node_role: query-node
+      node_id: quer_node_0
+      GRAPH_LOG_QUERY_TIMING: "gql"
+      DISABLE_BLOCK_INGESTOR: "true"
+      EXPERIMENTAL_SUBGRAPH_VERSION_SWITCHING_MODE: synced
+      ethereum: celo:no_eip1898,archive,traces:{celo-node-url}
+      RUST_LOG: info
+  graph-node-query-1:
+    container_name: celo-graph-query-1
+    image: graphprotocol/graph-node:v0.25.2
+    ports:
+      - "9000:8000"
+      - "9001:8001"
+      - "9020:8020"
+      - "9030:8030"
+      - "9040:8040"
+    depends_on:
+      - ipfs
+      - postgres
+    environment:
+      postgres_host: postgres
+      postgres_user: celo_graph_postgres
+      postgres_pass: 'changeme'
+      postgres_db: celo_graph_db
+      ipfs: "ipfs:5001"
+      node_role: query-node
+      node_id: quer_node_0
+      GRAPH_LOG_QUERY_TIMING: "gql"
+      DISABLE_BLOCK_INGESTOR: "true"
       EXPERIMENTAL_SUBGRAPH_VERSION_SWITCHING_MODE: synced
       ethereum: celo:no_eip1898,archive,traces:{celo-node-url}
       RUST_LOG: info
