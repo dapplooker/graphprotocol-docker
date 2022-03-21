@@ -1,0 +1,45 @@
+version: "3"
+services:
+  graph-node:
+    container_name: celo-graph-indexer
+    image: graphprotocol/graph-node:v0.25.1
+    ports:
+      - "8000:8000"
+      - "8001:8001"
+      - "8020:8020"
+      - "8030:8030"
+      - "8040:8040"
+    depends_on:
+      - ipfs
+      - postgres
+    environment:
+      postgres_host: postgres
+      postgres_user: celo_graph_postgres
+      postgres_pass: 'changeme'
+      postgres_db: celo_graph_db
+      ipfs: "ipfs:5001"
+      ETHEREUM_POLLING_INTERVAL: 500
+      GRAPH_ETHEREUM_TARGET_TRIGGERS_PER_BLOCK_RANGE: 500
+      ETHEREUM_BLOCK_BATCH_SIZE: 100
+      GRAPH_GRAPHQL_QUERY_TIMEOUT: 60
+      EXPERIMENTAL_SUBGRAPH_VERSION_SWITCHING_MODE: synced
+      ethereum: celo:no_eip1898,archive,traces:{celo-node-url}
+      RUST_LOG: info
+  ipfs:
+    container_name: ipfs
+    image: ipfs/go-ipfs:v0.4.23
+    ports:
+      - "5001:5001"
+    volumes:
+      - ./data/ipfs:/data/ipfs
+  postgres:
+    image: postgres
+    ports:
+      - "5432:5432"
+    command: ["postgres", "-cshared_preload_libraries=pg_stat_statements"]
+    environment:
+      POSTGRES_USER: celo_graph_postgres
+      POSTGRES_PASSWORD: 'changeme'
+      POSTGRES_DB: celo_graph_db
+    volumes:
+      - ./data/postgres:/var/lib/postgresql/data
