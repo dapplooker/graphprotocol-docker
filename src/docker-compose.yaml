@@ -1,7 +1,7 @@
 version: "3"
 services:
     graph-node-indexer:
-        container_name: celo-graphprotocol-hosted-docker
+        container_name: celo-graph-indexer
         image: graphprotocol/graph-node:v0.25.2
         ports:
             - "8020:8020"
