@@ -1,2 +1,3 @@
 # graph-indexer
-Graph Indexer 
+Graph Indexer
+

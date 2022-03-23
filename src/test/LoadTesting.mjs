@@ -5,7 +5,7 @@ function delay(t) {
     return new Promise(resolve => setTimeout(resolve, t));
 }
 
-const BATCH_SIZE=10
+const BATCH_SIZE=100
 
 async function getData(call_number) {
     console.log("Calling for " + call_number);
@@ -23,9 +23,9 @@ async function getData(call_number) {
                 }
             }`,
         });
-
+    console.log(`Query:`+ data);
     const response = await fetch(
-        "http://host/subgraphs/name/dapplooker/celo-tokens-analytics-subgraph",
+        "http://{graph_host}/subgraphs/name/dapplooker/celo-tokens-analytics-subgraph",
         {
                 method: 'post',
                 body: data,
@@ -38,7 +38,8 @@ async function getData(call_number) {
         );
 
     const status = await response.status;
-    // console.log("Calling done for " + call_number + ":" + status);
+    const queryResult = await response.json();
+    console.log("Calling done for " + call_number + ":" + status + ",queryResponse:" + queryResult.data);
     // console.log(json.data);
     return status
 }
@@ -76,7 +77,7 @@ async function rateLimitedRequests (maxCall) {
 
         let endTime = Date.now();
         let requestTime = endTime - startTime;
-        console.log("Finished in seconds: " + requestTime)
+        console.log("Finished in seconds: " + (requestTime/1000))
 
         await delay(1000);
         maxCall --;
