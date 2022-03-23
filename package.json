@@ -1,0 +1,23 @@
+{
+  "name": "graphprotocol-hosted-docker",
+  "version": "1.0.0",
+  "description": "Local graph-node deployment",
+  "main": "index.js",
+  "dependencies": {
+    "node-fetch": "^3.2.3"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dapplooker/graphprotocol-hosted-docker.git"
+  },
+  "author": "DappLooker",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/dapplooker/graphprotocol-hosted-docker/issues"
+  },
+  "homepage": "https://github.com/dapplooker/graphprotocol-hosted-docker#readme"
+}
