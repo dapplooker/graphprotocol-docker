@@ -14,7 +14,7 @@
     "type": "git",
     "url": "git+https://github.com/dapplooker/graphprotocol-hosted-docker.git"
   },
-  "author": "Vikash Kumar Choubey (DappLooker)",
+  "author": "DappLooker",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/dapplooker/graphprotocol-hosted-docker/issues"

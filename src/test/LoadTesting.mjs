@@ -19,7 +19,7 @@ async function getData(call_number) {
 
     console.log(`Query: `+ data);
     const response = await fetch(
-        "http://194.163.171.50:8000/subgraphs/name/dapplooker/celo-tokens-analytics-subgraph",
+        "http://{hostname}/subgraphs/name/dapplooker/celo-tokens-analytics-subgraph",
         {
                 method: 'post',
                 body: data,
