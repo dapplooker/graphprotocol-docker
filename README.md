@@ -1,4 +1,4 @@
-# graphprotocol-hosted-docker
+# graphprotocol-docker
 ### Run graph indexer and query node docker containers
 - To run the setup update `src/.env` file with required parameters
 - Navigate to folder `src` by doing `cd src`.
