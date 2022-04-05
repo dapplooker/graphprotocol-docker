@@ -3,6 +3,8 @@ services:
     graph-node-indexer:
         container_name: celo-graph-indexer
         image: graphprotocol/graph-node:v0.25.2
+        ports:
+            - "8020:8020"
         depends_on:
             - ipfs
             - postgres
@@ -25,7 +27,6 @@ services:
         ports:
             - "8000:8000"
             - "8001:8001"
-            - "8020:8020"
             - "8030:8030"
             - "8040:8040"
         depends_on:
@@ -50,7 +51,6 @@ services:
         ports:
             - "9000:8000"
             - "9001:8001"
-            - "9020:8020"
             - "9030:8030"
             - "9040:8040"
         depends_on:
