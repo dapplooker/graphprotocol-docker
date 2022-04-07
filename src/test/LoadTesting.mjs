@@ -1,8 +1,8 @@
 import fetch from "node-fetch"
 globalThis.fetch = fetch
 
-const BATCH_SIZE=999
-const MAX_QUERY_AT_TIME=1000
+const BATCH_SIZE=1
+const MAX_QUERY_AT_TIME=1
 
 
 function delay(t) {
@@ -14,12 +14,17 @@ async function getData(call_number) {
     console.log("Calling for " + call_number);
     const data = JSON.stringify(
         {
-            query: `{ tokenDayDatas(first: ${call_number % MAX_QUERY_AT_TIME}) { id timestamp dailyVolumeToken dailyTxns lastUpdatedTimestamp } }`,
+            query: `{ indexingStatuses { subgraph synced health entityCount chains { chainHeadBlock { number }
+                  earliestBlock { number }
+                  latestBlock { number }
+                }
+              }
+            }`,
         });
 
     console.log(`Query: `+ data);
     const response = await fetch(
-        "http://{hostname}/subgraphs/name/dapplooker/celo-tokens-analytics-subgraph",
+        "http://localhost:8030/graphql/playground",
         {
                 method: 'post',
                 body: data,
@@ -33,7 +38,7 @@ async function getData(call_number) {
 
     const status = response.status;
     const queryResult = await response.json();
-    // console.log("Calling done for " + call_number + ":" + status + ", queryResponse:" + JSON.stringify(queryResult));
+    console.log("Calling done for " + call_number + ":" + status + ", queryResponse:" + JSON.stringify(queryResult));
     return status
 }
 
