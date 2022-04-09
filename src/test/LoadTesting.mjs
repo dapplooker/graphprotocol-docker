@@ -9,6 +9,8 @@ function delay(t) {
     return new Promise(resolve => setTimeout(resolve, t));
 }
 
+const BATCH_SIZE=10;
+const GRAPH_NODE="celo-graph-api.dapplooker.com";
 
 async function getData(call_number) {
     console.log("Calling for " + call_number);
