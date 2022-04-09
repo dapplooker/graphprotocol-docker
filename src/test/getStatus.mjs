@@ -15,14 +15,25 @@ async function getData() {
     const data = JSON.stringify(
         {
             query: `{ 
-                indexingStatuses { subgraph synced health entityCount chains { chainHeadBlock { number }
-                earliestBlock { number } latestBlock { number }
-                } } }`,
+                indexingStatuses  { 
+                    subgraph synced health entityCount 
+                    chains { 
+                        chainHeadBlock { number } 
+                        earliestBlock { number } 
+                        latestBlock { number }
+                    } 
+                    fatalError {
+                        message
+                        block { hash number }
+                        handler deterministic
+                    }
+                } 
+            }`,
         });
 
     console.log(`Query: `+ data);
     const response = await fetch(
-        `https://${GRAPH_NODE}/subgraphs/name/dapplooker/celo-tokens-analytics-subgraph`,
+        `http://${GRAPH_NODE}/graphql`,
         {
             method: 'post',
             body: data,
@@ -35,8 +46,30 @@ async function getData() {
     );
 
     const status = response.status;
-    const queryResult = await response.json();
-    console.log("queryResponse:" + JSON.stringify(queryResult));
+    console.log("Status: " + status);
+
+    if (status === 200) {
+        const queryResult = await response.json();
+        let indexingStatus = queryResult["data"]["indexingStatuses"]
+
+        for (let idx = 0; idx < indexingStatus.length; idx++) {
+            console.log("============================");
+            let subgraphId = indexingStatus[idx]["subgraph"]
+            let subgraphEntityCount = indexingStatus[idx]["entityCount"]
+            console.log(`Subgraph ID: ${subgraphId}`);
+            console.log(`Subgraph entity count: ${subgraphEntityCount}`);
+            console.log(`Subgraph error: ${indexingStatus[idx]["fatalError"]}`);
+
+            let chains = indexingStatus[idx]["chains"]
+            for (let chain_idx = 0; chain_idx < chains.length; chain_idx++) {
+                let chainHeadBlock = chains[chain_idx]["chainHeadBlock"]["number"]
+                let latestBlock = chains[chain_idx]["latestBlock"]["number"]
+                let progressPercentage = (latestBlock/chainHeadBlock) * 100
+                console.log(`Progress percentage : ${progressPercentage.toFixed(2)}%`);
+            }
+        }
+    }
+
     return status
 }
 
