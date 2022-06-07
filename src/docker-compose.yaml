@@ -31,9 +31,7 @@ services:
         image: graphprotocol/graph-node:v0.25.2
         ports:
             - "8000:8000"
-            - "8001:8001"
             - "8030:8030"
-            - "8040:8040"
         depends_on:
             - ipfs
             - postgres
@@ -60,9 +58,7 @@ services:
         image: graphprotocol/graph-node:v0.25.2
         ports:
             - "9000:8000"
-            - "9001:8001"
             - "9030:8030"
-            - "9040:8040"
         depends_on:
             - ipfs
             - postgres
@@ -78,7 +74,7 @@ services:
             postgres_db: ${POSTGRES_DB}
             ipfs: "ipfs:5001"
             node_role: query-node
-            node_id: quer_node_0
+            node_id: quer_node_1
             GRAPH_LOG_QUERY_TIMING: '${GRAPH_LOG_QUERY_TIMING}'
             DISABLE_BLOCK_INGESTOR: '${DISABLE_BLOCK_INGESTOR}'
             EXPERIMENTAL_SUBGRAPH_VERSION_SWITCHING_MODE: ${EXPERIMENTAL_SUBGRAPH_VERSION_SWITCHING_MODE}
