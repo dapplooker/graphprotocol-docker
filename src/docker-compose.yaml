@@ -8,6 +8,11 @@ services:
         depends_on:
             - ipfs
             - postgres
+        logging:
+            driver: "json-file"
+            options:
+                max-size: "2g"
+                max-file: "10"
         environment:
             postgres_host: ${POSTGRES_HOST}
             postgres_user: ${POSTGRES_USER}
@@ -26,12 +31,15 @@ services:
         image: graphprotocol/graph-node:v0.25.2
         ports:
             - "8000:8000"
-            - "8001:8001"
             - "8030:8030"
-            - "8040:8040"
         depends_on:
             - ipfs
             - postgres
+        logging:
+            driver: "json-file"
+            options:
+                max-size: "1g"
+                max-file: "3"
         environment:
             postgres_host: ${POSTGRES_HOST}
             postgres_user: ${POSTGRES_USER}
@@ -50,12 +58,15 @@ services:
         image: graphprotocol/graph-node:v0.25.2
         ports:
             - "9000:8000"
-            - "9001:8001"
             - "9030:8030"
-            - "9040:8040"
         depends_on:
             - ipfs
             - postgres
+        logging:
+            driver: "json-file"
+            options:
+                max-size: "1g"
+                max-file: "3"
         environment:
             postgres_host: ${POSTGRES_HOST}
             postgres_user: ${POSTGRES_USER}
@@ -63,7 +74,7 @@ services:
             postgres_db: ${POSTGRES_DB}
             ipfs: "ipfs:5001"
             node_role: query-node
-            node_id: quer_node_0
+            node_id: quer_node_1
             GRAPH_LOG_QUERY_TIMING: '${GRAPH_LOG_QUERY_TIMING}'
             DISABLE_BLOCK_INGESTOR: '${DISABLE_BLOCK_INGESTOR}'
             EXPERIMENTAL_SUBGRAPH_VERSION_SWITCHING_MODE: ${EXPERIMENTAL_SUBGRAPH_VERSION_SWITCHING_MODE}
@@ -76,11 +87,21 @@ services:
             - "5001:5001"
         volumes:
             - ./data/ipfs:/data/ipfs
+        logging:
+            driver: "json-file"
+            options:
+                max-size: "50m"
+                max-file: "3"
     postgres:
         image: postgres
         ports:
             - "5432:5432"
         command: ["postgres", "-cshared_preload_libraries=pg_stat_statements"]
+        logging:
+            driver: "json-file"
+            options:
+                max-size: "50m"
+                max-file: "3"
         environment:
             POSTGRES_USER: ${POSTGRES_USER}
             POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
