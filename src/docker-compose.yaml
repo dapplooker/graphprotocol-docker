@@ -8,6 +8,11 @@ services:
         depends_on:
             - ipfs
             - postgres
+        logging:
+            driver: "json-file"
+            options:
+                max-size: "2g"
+                max-file: "10"
         environment:
             postgres_host: ${POSTGRES_HOST}
             postgres_user: ${POSTGRES_USER}
@@ -32,6 +37,11 @@ services:
         depends_on:
             - ipfs
             - postgres
+        logging:
+            driver: "json-file"
+            options:
+                max-size: "1g"
+                max-file: "3"
         environment:
             postgres_host: ${POSTGRES_HOST}
             postgres_user: ${POSTGRES_USER}
@@ -56,6 +66,11 @@ services:
         depends_on:
             - ipfs
             - postgres
+        logging:
+            driver: "json-file"
+            options:
+                max-size: "1g"
+                max-file: "3"
         environment:
             postgres_host: ${POSTGRES_HOST}
             postgres_user: ${POSTGRES_USER}
@@ -76,11 +91,21 @@ services:
             - "5001:5001"
         volumes:
             - ./data/ipfs:/data/ipfs
+        logging:
+            driver: "json-file"
+            options:
+                max-size: "50m"
+                max-file: "3"
     postgres:
         image: postgres
         ports:
             - "5432:5432"
         command: ["postgres", "-cshared_preload_libraries=pg_stat_statements"]
+        logging:
+            driver: "json-file"
+            options:
+                max-size: "50m"
+                max-file: "3"
         environment:
             POSTGRES_USER: ${POSTGRES_USER}
             POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
