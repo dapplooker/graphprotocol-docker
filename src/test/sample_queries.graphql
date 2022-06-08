@@ -1,0 +1,32 @@
+{
+    indexingStatuses(subgraphs: ["QmWHmMXCeB7gWJy2Xx8tvY9JR4QFcV6WiyQTnRRPSr4HLi", "QmXA2foYPCym8i9FYhGLVpfBN3XEUfJeQsRQiWsEtNuWHM", "QmUEZKGVEWDTbNekW7v3fAEjACcPxdoAkH6Cm96XnEbVMh", "QmVn1bwPMNLRfxbfhUzW9mEKtRaEs5hrbkCs241fvjk8c2", "QmeFGZmbj4RBiSofCa7mc54GWuc85Hn7c5vhX75znjBXuZ", "Qme8HV35ecwhnqLa1tAannBucpcTeW5piLSM9SAgTZ8MpN"]) {
+        subgraph
+        synced
+        health
+        entityCount
+        chains {
+            chainHeadBlock {
+                number
+            }
+            earliestBlock {
+                number
+            }
+            latestBlock {
+                number
+            }
+        }
+        fatalError {
+            message
+            block {
+                hash
+                number
+            }
+            handler
+            deterministic
+        }
+        nonFatalErrors{
+            message
+        }
+        node
+    }
+}
