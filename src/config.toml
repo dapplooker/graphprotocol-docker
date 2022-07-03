@@ -1,0 +1,20 @@
+[store]
+[store.primary]
+connection = "postgresql://<postgres_host>:<postgres_password>@postgres:5432/<db_name>"
+pool_size = 10
+
+
+[chains]
+ingestor = "<indexer_container_name>"
+
+[chains.mainnet]
+shard = "primary"
+provider = [ { label = "<network>", url = "<node url>", features = ["archive", "traces"] } ]
+
+[deployment]
+[[deployment.rule]]
+indexers = [ "<indexer_container_name>" ]
+
+
+[general]
+query = "<query_container_name>"
