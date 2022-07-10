@@ -30,8 +30,8 @@ services:
         container_name: eth-graph-query-0
         image: graphprotocol/graph-node:v0.25.2
         ports:
-            - "9002:8000"
-            - "9032:8030"
+            - "9000:8000"
+            - "9030:8030"
         depends_on:
             - ipfs
             - postgres

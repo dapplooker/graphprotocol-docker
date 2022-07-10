@@ -57,8 +57,8 @@ services:
         container_name: celo-graph-query-1
         image: graphprotocol/graph-node:v0.25.2
         ports:
-            - "9000:8000"
-            - "9030:8030"
+            - "8001:8000"
+            - "8031:8030"
         depends_on:
             - ipfs
             - postgres
