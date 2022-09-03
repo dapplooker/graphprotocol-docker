@@ -1,5 +1,6 @@
 {
   "name": "graphprotocol-hosted-docker",
+  "type": "module",
   "version": "1.0.0",
   "description": "Local graph-node deployment",
   "main": "index.js",
