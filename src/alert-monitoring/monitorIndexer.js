@@ -18,7 +18,7 @@ export async function monitoringIndexer() {
         let graphIndexerNode = config['graph_indexer_node']
         let archiveNode = config['archive_node']
         let externalRpcNode = config['external_rpc_node']
-        if (!(archiveNode || externalRpcNode || graphIndexerNode)) {
+        if (!(archiveNode && externalRpcNode && graphIndexerNode)) {
             console.log(`Detail missing for ${network} in config, please check and update`)
             continue
         }
@@ -43,7 +43,7 @@ export async function monitoringIndexer() {
 function getErrorMessage(archiveNodeLatestBlock, externalRpcNodeLatestBlock, subgraphData, currentNetwork){
     // External RPC node is source of truth
     let errorMessageList = []
-    let blockDiff = externalRpcNodeLatestBlock - archiveNodeLatestBlock
+    let blockDiff = Math.abs(externalRpcNodeLatestBlock - archiveNodeLatestBlock)
     if (blockDiff > process.env.BLOCK_DIFFERENCE_ALERT){
         let errorMsg = `Error archiveNodeLatestBlock ${blockDiff} block behind`
         console.log(errorMsg)
