@@ -78,10 +78,33 @@ export function getSubgraphError(allIndexedSubgraphs, archiveNodeLatestBlock, cu
 }
 
 
-export async function getLatestBlockNumber(rpcNodeLink, network) {
-    const { createAlchemyWeb3 } = require("@alch/alchemy-web3");
-    const web3 = createAlchemyWeb3(rpcNodeLink);
-    const blockNumber = await web3.eth.getBlockNumber();
-    console.log(`The latest block number is ${blockNumber} for network ${network}`);
-    return blockNumber
+const asyncCallWithTimeout = async (asyncPromise, timeLimit) => {
+    let timeoutHandle;
+
+    const timeoutPromise = new Promise((_resolve, reject) => {
+        timeoutHandle = setTimeout(
+            () => reject(new Error('Async call timeout limit reached')),
+            timeLimit
+        );
+    });
+
+    return Promise.race([asyncPromise, timeoutPromise]).then(result => {
+        clearTimeout(timeoutHandle);
+        return result;
+    })
+}
+
+
+export const getLatestBlockNumber = async (rpcNodeLink, network) => {
+    try {
+        const { createAlchemyWeb3 } = require("@alch/alchemy-web3");
+        const web3 = createAlchemyWeb3(rpcNodeLink);
+        const blockNumber = await asyncCallWithTimeout(web3.eth.getBlockNumber(), 2000);
+        console.log(`The latest block number is ${blockNumber} for network ${network}`);
+        return blockNumber
+    }
+    catch (err) {
+        console.error(err);
+    }
+    return 0
 }

@@ -18,6 +18,7 @@ export async function monitoringIndexer() {
         let graphIndexerNode = config['graph_indexer_node']
         let archiveNode = config['archive_node']
         let externalRpcNode = config['external_rpc_node']
+        let errorMessages = []
         if (!(archiveNode && externalRpcNode && graphIndexerNode)) {
             console.log(`Detail missing for ${network} in config, please check and update`)
             continue
@@ -28,11 +29,19 @@ export async function monitoringIndexer() {
         let externalRpcNodeLatestBlock = await getLatestBlockNumber(externalRpcNode, network)
         let subgraphData = await getSubgraphData(graphIndexerNode)
 
-        let errorMessages = getErrorMessage(archiveNodeLatestBlock, externalRpcNodeLatestBlock,
-            subgraphData, network)
+        if (externalRpcNodeLatestBlock === 0 || archiveNodeLatestBlock === 0){
+            let errorMsg = `Unable to communicate to archive or external RPC node, \
+                block numbers ${archiveNodeLatestBlock} ${externalRpcNodeLatestBlock} respectively.`
+            errorMessages.push(errorMsg)
+        } else {
+            let errorResponse = getErrorMessage(archiveNodeLatestBlock, externalRpcNodeLatestBlock,
+                subgraphData, network)
+            errorMessages.concat(errorResponse)
+        }
         if (errorMessages.length > 0) {
-            console.log(errorMessages)
-            await sendMail("Alert for Indexer issue", "", JSON.stringify(errorMessages))
+            console.log(`Found error in indexer, sending mail`)
+            let mailBody = JSON.stringify(errorMessages)
+            await sendMail("Alert for Indexer issue", mailBody, mailBody)
         } else{
             console.log(`No errors ${network}!!!`)
         }
