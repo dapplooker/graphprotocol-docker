@@ -12,6 +12,9 @@ class Constant {
             toMails: [process.env.TO_EMAILS]
         }
     }
+    get cronJobSchedule() {
+        return "* */15 * * * *"
+    }
 }
 
 export default new Constant();

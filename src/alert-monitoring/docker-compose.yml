@@ -1,14 +1,9 @@
-version: '3.2'
-
-networks:
-    app-tier:
-        driver: bridge
+version: '3.5'
 
 services:
     monitoring-indexer:
+        image: monitor-indexer
         build:
-            context: ..
+            context: .
             dockerfile: Dockerfile
-        command: bash -c "node cronJob.js"
-        networks:
-            - app-tier
+        command: bash -c "source set_environment.sh && node cronJob.js"

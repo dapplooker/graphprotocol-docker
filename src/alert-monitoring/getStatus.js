@@ -66,8 +66,8 @@ export function getSubgraphError(allIndexedSubgraphs, archiveNodeLatestBlock, cu
                 continue
             }
             let latestBlock = chains[chain_idx]["latestBlock"]["number"]
-            let blockDifference = Math.abs(archiveNodeLatestBlock - latestBlock)
-            if (blockDifference > 0){
+            let blockDifference = archiveNodeLatestBlock - latestBlock
+            if (blockDifference > process.env.BLOCK_DIFFERENCE_ALERT){
                 let errorMsg = `Subgraph ${subgraphId} is running behind by ${blockDifference} for network ${network}`
                 console.log(errorMsg)
                 errorMessageList.push()

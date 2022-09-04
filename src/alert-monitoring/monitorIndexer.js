@@ -44,7 +44,7 @@ function getErrorMessage(archiveNodeLatestBlock, externalRpcNodeLatestBlock, sub
     // External RPC node is source of truth
     let errorMessageList = []
     let blockDiff = externalRpcNodeLatestBlock - archiveNodeLatestBlock
-    if (blockDiff > 100){
+    if (blockDiff > process.env.BLOCK_DIFFERENCE_ALERT){
         let errorMsg = `Error archiveNodeLatestBlock ${blockDiff} block behind`
         console.log(errorMsg)
         errorMessageList.push()
