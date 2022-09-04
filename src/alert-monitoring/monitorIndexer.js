@@ -32,7 +32,7 @@ export async function monitoringIndexer() {
             subgraphData, network)
         if (errorMessages.length > 0) {
             console.log(errorMessages)
-            // await sendMail("Alert for Indexer issue", "", JSON.stringify(errorMessages))
+            await sendMail("Alert for Indexer issue", "", JSON.stringify(errorMessages))
         } else{
             console.log(`No errors ${network}!!!`)
         }
