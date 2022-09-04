@@ -1,0 +1,14 @@
+version: '3.2'
+
+networks:
+    app-tier:
+        driver: bridge
+
+services:
+    monitoring-indexer:
+        build:
+            context: ..
+            dockerfile: Dockerfile
+        command: bash -c "node cronJob.js"
+        networks:
+            - app-tier

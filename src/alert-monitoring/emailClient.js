@@ -1,14 +1,14 @@
+import Constant from './config/constants.js';
+import AWS from 'aws-sdk';
 
-class SesClient {
-    private sesConnectionInstance: SES;
 
-    public constructor() {
-    }
+export class SesClient {
+    constructor() {}
 
-    public async send(from_email: string, to: string[], subject: string, htmlBody: string, textBody: string): Promise<SuccessResponse|ErrorResponse> {
+    send(from_email, to, subject, htmlBody, textBody) {
         const oThis = this;
-        Logger.info(`SesClient::send::to: ${to}, subjet: ${subject}, htmlbody: ${htmlBody}, textBody: ${textBody}`);
-        const emailParams: any = {
+        console.log(`SesClient::send::to: ${to}, subject: ${subject}, htmlbody: ${htmlBody}, textBody: ${textBody}`);
+        const emailParams = {
             Source: from_email,
             Destination: {
                 ToAddresses: to,
@@ -32,42 +32,36 @@ class SesClient {
         };
 
         try {
-            await oThis.getConnectionInstance().sendEmail(emailParams, (err, data) => {
+            oThis.getConnectionInstance().sendEmail(emailParams, (err, data) => {
                 if (err) {
-                    Logger.info(`SesClient::send::Ses: Error sending email response: ${err}, ${err.stack}`);
+                    console.log(`SesClient::send::Ses: Error sending email response: ${err}, ${err.stack}`);
                     const debugOptions = {
                         error: `Ses: Error sending email. Exception: ${err}`,
                         input: { fromEmail: from_email, to, subject },
                         errorCode: 's_l_a_sc_1',
                     };
-                    return ResponseHelper.error(['generalError'], debugOptions);
+                    console.log(`Error sending mail: ${debugOptions}`);
+                    return
                 }
-                Logger.info(`SesClient::send::Successful email response: ${JSON.stringify(data)}`);
-                return ResponseHelper.success({});
+                console.log(`SesClient::send::Successful email response: ${JSON.stringify(data)}`);
             });
         } catch (e) {
-            Logger.error(`Ses::send::Error sending email. Exception: ${e.message}`);
+            console.log(`Ses::send::Error sending email. Exception: ${e.message}`);
             const debugOptions = {
                 error: `Ses: Error sending email. Exception: ${e.message}`,
-                input: { fromEmail: from_email, to, subject },
+                input: {fromEmail: from_email, to, subject},
             };
-            return ResponseHelper.error(['generalError'], debugOptions);
+            console.log(`Error sending mail: ${debugOptions}`);
         }
-        return ResponseHelper.success({});
     }
 
-    private getConnectionInstance(): SES {
-        const oThis = this;
-        if (GeneralValidator.validateNonEmptyObject(oThis.sesConnectionInstance)) {
-            return oThis.sesConnectionInstance;
-        }
-
-        const sesConnectionInstance = new AWS.SES({
+     getConnectionInstance() {
+        return new AWS.SES({
             apiVersion: '2010-12-01',
-            credentials: new AWS.Credentials(Constant.sesConfig.aws_access_key, Constant.sesConfig.aws_secret_key),
-            region: Constant.sesConfig.region,
+            credentials: new AWS.Credentials(Constant.amazonSESConfig.accessKeyId,
+                Constant.amazonSESConfig.accessSecretKey),
+            region: Constant.amazonSESConfig.region,
         });
-        return sesConnectionInstance;
     }
 }
 

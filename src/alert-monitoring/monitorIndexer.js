@@ -3,13 +3,16 @@ import {
     getSubgraphData, getSubgraphError
 } from './getStatus.js';
 import { createRequire } from "module";
+import {SesClient} from "./emailClient.js"
+import Constant from './config/constants.js';
+
 
 const require = createRequire(import.meta.url);
-const fullConfig = require('./config.json');
-
+const fullConfig = require('./config/config.json');
 let allNetworkIndexer = fullConfig['network_index']
 
-async function monitoringIndexer() {
+
+export async function monitoringIndexer() {
     for (const [network, config] of Object.entries(allNetworkIndexer)) {
         console.log(`Starting monitoring ${network}, config provided ${JSON.stringify(config)}`);
         let graphIndexerNode = config['graph_indexer_node']
@@ -29,6 +32,7 @@ async function monitoringIndexer() {
             subgraphData, network)
         if (errorMessages.length > 0) {
             console.log(errorMessages)
+            // await sendMail("Alert for Indexer issue", "", JSON.stringify(errorMessages))
         } else{
             console.log(`No errors ${network}!!!`)
         }
@@ -51,4 +55,10 @@ function getErrorMessage(archiveNodeLatestBlock, externalRpcNodeLatestBlock, sub
 }
 
 
-monitoringIndexer()
+async function sendMail(subject, htmlBody, textBody) {
+    new SesClient().send(
+        Constant.SESMailDetails.fromMail,
+        Constant.SESMailDetails.toMails,
+        subject, htmlBody, textBody
+    );
+}

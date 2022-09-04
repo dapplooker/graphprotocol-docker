@@ -10,8 +10,5 @@
             "archive_node": "",
             "external_rpc_node": ""
         }
-    },
-    "smtp": {
-
     }
 }
