@@ -41,7 +41,6 @@ export class MonitorIndexer {
             if (errorMessages.length > 0) {
                 console.log(`Found error in indexer, sending mail`)
                 let mailBody = JSON.stringify(errorMessages)
-                MonitorIndexer().sendMail()
                 new SesClient().send(
                     Constant.SESMailDetails.fromMail,
                     Constant.SESMailDetails.toMails,
