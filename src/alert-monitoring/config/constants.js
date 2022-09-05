@@ -10,10 +10,10 @@ class Constant {
         return {
             fromMail: process.env.FROM_MAIL,
             toMails: [process.env.TO_EMAILS]
-        }
+        };
     }
     get cronJobSchedule() {
-        return "* */15 * * * *"
+        return "* */15 * * * *";
     }
 }
 

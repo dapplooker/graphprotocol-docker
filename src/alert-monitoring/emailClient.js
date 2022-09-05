@@ -64,5 +64,3 @@ export class SesClient {
         });
     }
 }
-
-export default new SesClient();
