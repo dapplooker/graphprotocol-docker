@@ -76,7 +76,7 @@ export class getDataToMonitorStatus {
         return errorMessageList;
     }
 
-    asyncCallWithTimeout = async (asyncPromise, timeLimit) => {
+    async asyncCallWithTimeout(asyncPromise, timeLimit) {
         let timeoutHandle;
 
         const timeoutPromise = new Promise((_resolve, reject) => {

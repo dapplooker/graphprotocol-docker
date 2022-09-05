@@ -45,7 +45,7 @@ export class MonitorIndexer {
                 new SesClient().send(
                     Constant.SESMailDetails.fromMail,
                     Constant.SESMailDetails.toMails,
-                    "Alert for Indexer issue", mailBody, mailBody
+                    "Alert - RPC node for Celo/Ethereum is lagging behind", mailBody, mailBody
                 );
             } else {
                 console.log(`No errors ${network}!!!`)
