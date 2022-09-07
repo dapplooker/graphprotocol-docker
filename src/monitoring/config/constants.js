@@ -6,12 +6,14 @@ class Constant {
             region: process.env.AWS_SES_REGION,
         };
     }
+
     get SESMailDetails() {
         return {
             fromMail: process.env.FROM_MAIL,
             toMails: [process.env.TO_EMAILS]
         };
     }
+
     get cronJobSchedule() {
         return "* */15 * * * *";
     }

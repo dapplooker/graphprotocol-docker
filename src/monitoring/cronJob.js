@@ -1,8 +1,6 @@
-import {
-    MonitorIndexer
-} from './monitorIndexer.js';
 import Constant from './config/constants.js';
 import {createRequire} from "module";
+import MonitorIndexer from "./monitorIndexer.js";
 
 const require = createRequire(import.meta.url);
 const cron = require("node-cron");

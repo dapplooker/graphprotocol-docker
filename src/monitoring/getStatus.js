@@ -19,9 +19,9 @@ let indexerQuery = `{
         } 
     }`
 
-export class getDataToMonitorStatus {
+export class DataToMonitorStatus {
 
-    static async getSubgraphData(indexerGraphQLURL) {
+    async getSubgraphData(indexerGraphQLURL) {
         const data = JSON.stringify({query: indexerQuery});
         const response = await fetch(
             indexerGraphQLURL,
@@ -48,7 +48,7 @@ export class getDataToMonitorStatus {
         }
     }
 
-    static getSubgraphError(allIndexedSubgraphs, archiveNodeLatestBlock, currentNetwork) {
+     getSubgraphError(allIndexedSubgraphs, archiveNodeLatestBlock, currentNetwork) {
         let errorMessageList = [];
         for (let idx = 0; idx < allIndexedSubgraphs.length; idx++) {
             let subgraphId = allIndexedSubgraphs[idx]["subgraph"];
@@ -92,11 +92,11 @@ export class getDataToMonitorStatus {
         })
     }
 
-    static getLatestBlockNumber = async (rpcNodeLink, network) => {
+     getLatestBlockNumber = async (rpcNodeLink, network) => {
         try {
             const {createAlchemyWeb3} = require("@alch/alchemy-web3");
             const web3 = createAlchemyWeb3(rpcNodeLink);
-            const blockNumber = await getDataToMonitorStatus().asyncCallWithTimeout(web3.eth.getBlockNumber(), 2000);
+            const blockNumber = await this.asyncCallWithTimeout(web3.eth.getBlockNumber(), 2000);
             console.log(`The latest block number is ${blockNumber} for network ${network}`);
             return blockNumber;
         } catch (err) {
