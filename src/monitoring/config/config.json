@@ -1,0 +1,14 @@
+{
+    "network_index": {
+        "ethereum": {
+            "graph_indexer_node": "",
+            "archive_node": "",
+            "external_rpc_node": ""
+        },
+        "celo": {
+            "graph_indexer_node": "",
+            "archive_node": "",
+            "external_rpc_node": ""
+        }
+    }
+}

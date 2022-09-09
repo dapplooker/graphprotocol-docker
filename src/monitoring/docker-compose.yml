@@ -1,0 +1,9 @@
+version: '3.5'
+
+services:
+    monitoring-indexer:
+        image: monitor-indexer
+        build:
+            context: .
+            dockerfile: Dockerfile
+        command: bash -c "source set_environment.sh && node cronJob.js"
