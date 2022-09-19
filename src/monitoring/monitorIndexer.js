@@ -34,7 +34,6 @@ class MonitorIndexer {
     }
 
     checkForErrors(externalRpcNodeLatestBlock, archiveNodeLatestBlock, subgraphData, network){
-        let errorMessages = []
         if (externalRpcNodeLatestBlock === 0 || archiveNodeLatestBlock === 0) {
             let errorMsg = `Unable to communicate to archive or external RPC node of ${network}, \
                 block numbers ${archiveNodeLatestBlock} ${externalRpcNodeLatestBlock} respectively.`;
@@ -47,7 +46,6 @@ class MonitorIndexer {
 
     getErrorMessageAndSendMail(archiveNodeLatestBlock, externalRpcNodeLatestBlock, subgraphData, currentNetwork) {
         // External RPC node is source of truth
-        let errorMessageList = [];
         let blockDiff = Math.abs(externalRpcNodeLatestBlock - archiveNodeLatestBlock);
         if (blockDiff > process.env.BLOCK_DIFFERENCE_ALERT) {
             let errorMsg = `Error archiveNodeLatestBlock ${blockDiff} block behind`;
