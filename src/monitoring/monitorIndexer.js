@@ -14,7 +14,8 @@ let allNetworkIndexer = fullConfig['network_index']
 class MonitorIndexer {
     async monitoringIndexer() {
         for (const [network, config] of Object.entries(allNetworkIndexer)) {
-            console.log(`Starting monitoring ${network}, config provided ${JSON.stringify(config)}`);
+            console.log(`========= Starting monitoring ${network} =========`)
+            console.log(`Config provided ${JSON.stringify(config)}`);
             let graphIndexerNode = config['graph_indexer_node'];
             let archiveNode = config['archive_node'];
             let externalRpcNode = config['external_rpc_node'];
@@ -35,41 +36,43 @@ class MonitorIndexer {
     checkForErrors(externalRpcNodeLatestBlock, archiveNodeLatestBlock, subgraphData, network){
         let errorMessages = []
         if (externalRpcNodeLatestBlock === 0 || archiveNodeLatestBlock === 0) {
-            let errorMsg = `Unable to communicate to archive or external RPC node, \
+            let errorMsg = `Unable to communicate to archive or external RPC node of ${network}, \
                 block numbers ${archiveNodeLatestBlock} ${externalRpcNodeLatestBlock} respectively.`;
-            errorMessages.push(errorMsg);
+            console.log(errorMsg)
+            this.sendMail(`Alert - ${network} Node not accessible `, errorMsg);
         } else {
-            let errorResponse = this.getErrorMessage(archiveNodeLatestBlock,
-                externalRpcNodeLatestBlock, subgraphData, network);
-            errorMessages.concat(errorResponse);
-        }
-        if (errorMessages.length > 0) {
-            console.log(`Found error in indexer, sending mail`);
-            let mailBody = JSON.stringify(errorMessages)
-            new SesClient().send(
-                Constant.SESMailDetails.fromMail,
-                Constant.SESMailDetails.toMails,
-                "Alert - RPC node for Celo/Ethereum is lagging behind", mailBody, mailBody
-            );
-        } else {
-            console.log(`No errors ${network}!!!`);
+            this.getErrorMessageAndSendMail(archiveNodeLatestBlock, externalRpcNodeLatestBlock, subgraphData, network);
         }
     }
 
-    getErrorMessage(archiveNodeLatestBlock, externalRpcNodeLatestBlock, subgraphData, currentNetwork) {
+    getErrorMessageAndSendMail(archiveNodeLatestBlock, externalRpcNodeLatestBlock, subgraphData, currentNetwork) {
         // External RPC node is source of truth
         let errorMessageList = [];
         let blockDiff = Math.abs(externalRpcNodeLatestBlock - archiveNodeLatestBlock);
         if (blockDiff > process.env.BLOCK_DIFFERENCE_ALERT) {
             let errorMsg = `Error archiveNodeLatestBlock ${blockDiff} block behind`;
             console.log(errorMsg);
-            errorMessageList.push(errorMsg);
+            let errorMail = `Error archiveNode ${blockDiff} block behind \n
+                        Network: ${currentNetwork} \n
+                        Archive Node Endpoint: ${archiveNodeLatestBlock} \n
+                        Expected Block Number: ${externalRpcNodeLatestBlock} \n
+                        Lagging Block Number: ${blockDiff}`
+            this.sendMail(`Alert - RPC node for ${currentNetwork} is lagging behind`, errorMail);
         }
         let DataToMonitorStatusObj = new DataToMonitorStatus();
         let subgraphErrors = DataToMonitorStatusObj.getSubgraphError(subgraphData,
             archiveNodeLatestBlock, currentNetwork);
-        errorMessageList = errorMessageList.concat(subgraphErrors);
-        return errorMessageList;
+        if (subgraphErrors.length > 0){
+            this.sendMail(`Alert - Subgraph error for ${currentNetwork}.`, JSON.stringify(subgraphErrors));
+        }
+    }
+
+    sendMail(subject, mailBody) {
+        new SesClient().send(
+            Constant.SESMailDetails.fromMail,
+            Constant.SESMailDetails.toMails,
+            subject, mailBody, mailBody
+        );
     }
 }
 

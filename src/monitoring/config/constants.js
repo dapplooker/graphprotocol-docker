@@ -15,7 +15,7 @@ class Constant {
     }
 
     get cronJobSchedule() {
-        return "* */15 * * * *";
+        return "*/15 * * * *";
     }
 }
 
