@@ -35,10 +35,16 @@ class MonitorIndexer {
 
     checkForErrors(externalRpcNodeLatestBlock, archiveNodeLatestBlock, subgraphData, network){
         if (externalRpcNodeLatestBlock === 0 || archiveNodeLatestBlock === 0) {
-            let errorMsg = `Unable to communicate to archive or external RPC node of ${network}, \
-                block numbers ${archiveNodeLatestBlock} ${externalRpcNodeLatestBlock} respectively.`;
-            console.log(errorMsg)
-            this.sendMail(`Alert - ${network} Node not accessible `, errorMsg);
+            let errorMsg = "";
+            let notReachableNodeName = "";
+            if (externalRpcNodeLatestBlock === 0){
+                notReachableNodeName = "external RPC node";
+                errorMsg = `Unable to communicate to external RPC node of ${network}.`;
+            } else {
+                notReachableNodeName = "archive node";
+                errorMsg = `Unable to communicate to archive node of ${network}.`;
+            }
+            this.sendMail(`Alert - ${network} ${notReachableNodeName} not accessible `, errorMsg);
         } else {
             this.getErrorMessageAndSendMail(archiveNodeLatestBlock, externalRpcNodeLatestBlock, subgraphData, network);
         }
