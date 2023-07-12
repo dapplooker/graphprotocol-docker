@@ -40,10 +40,7 @@ class MonitorIndexer {
             }
 
             // Get all data required from archive/external RPC node and subgraph data
-            let archiveNodeLatestBlock = null;
-            let externalRpcNodeLatestBlock = null;
-            let subgraphData = null;
-
+            let [archiveNodeLatestBlock, externalRpcNodeLatestBlock, subgraphData] = [null, null, null];
             if (config['checkList']['check_head_block']) {
                 // Get the latest blocks only if `check_head` is true
                 archiveNodeLatestBlock = await DataToMonitorStatusObj.getLatestBlockNumber(archiveNode, network);
