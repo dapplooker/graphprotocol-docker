@@ -1,14 +1,37 @@
 {
-    "network_index": {
-        "ethereum": {
-            "graph_indexer_node": "",
-            "archive_node": "",
-            "external_rpc_node": ""
-        },
-        "celo": {
-            "graph_indexer_node": "",
-            "archive_node": "",
-            "external_rpc_node": ""
-        }
+  "network_index": {
+    "ethereum": {
+      "graph_indexer_node": "",
+      "archive_node": "",
+      "external_rpc_node": "",
+      "checkList": {
+        "check_head_block": false,
+        "check_subgraph_data": false,
+        "check_disc_capacity": false,
+        "check_if_graph_node_up": false
+      }
+    },
+    "celo": {
+      "graph_indexer_node": "",
+      "archive_node": "",
+      "external_rpc_node": "",
+      "checkList": {
+        "check_head_block": false,
+        "check_subgraph_data": false,
+        "check_disc_capacity": false,
+        "check_if_graph_node_up": false
+      }
+    },
+    "arbitrum": {
+      "graph_indexer_node": "",
+      "archive_node": "",
+      "external_rpc_node": "",
+      "checkList": {
+        "check_head_block": false,
+        "check_subgraph_data": false,
+        "check_disc_capacity": false,
+        "check_if_graph_node_up": false
+      }
     }
+  }
 }
