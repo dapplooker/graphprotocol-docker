@@ -113,8 +113,13 @@ export class DataToMonitorStatus {
  * @returns {Promise<boolean>} A promise that resolves with a boolean value indicating
  *          whether the GraphQL node is up (true) or not (false).
  */
-    async checkIfGraphNodeUP(indexerGraphQLURL) {
-        const data = JSON.stringify({ query: indexerQuery });
+    async checkIfGraphNodeUP(indexerGraphQLURL) {        
+        let checkQuery = `{ 
+            indexingStatuses  { 
+                subgraph
+            } 
+        }`
+        const data = JSON.stringify({ query: checkQuery });
         const response = await fetch(
             indexerGraphQLURL,
             {
