@@ -108,12 +108,12 @@ export class DataToMonitorStatus {
 
     /**
  * Asynchronously checks if the GraphQL node for the given indexer URL is up.
- * 
+ *
  * @param {string} indexerGraphQLURL - The URL of the indexer's GraphQL endpoint.
  * @returns {Promise<boolean>} A promise that resolves with a boolean value indicating
  *          whether the GraphQL node is up (true) or not (false).
  */
-    async checkIfGraphNodeUP(indexerGraphQLURL) {        
+    async checkGraphNodeStatus(indexerGraphQLURL) {
         let checkQuery = `{ 
             indexingStatuses  { 
                 subgraph
@@ -144,7 +144,7 @@ export class DataToMonitorStatus {
 
     /**
      * Asynchronously checks the disk space for the specified network machine.
-     * 
+     *
      * @param {string} network - The name of the network machine.
      * @returns {Promise<number|null>} A promise that resolves with the disk capacity in megabytes (MB),
      *          or null if the information is not found.

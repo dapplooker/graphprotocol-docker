@@ -20,7 +20,7 @@ class MonitorIndexer {
                 console.log(`Detail missing for ${network} in config, please check and update`);
                 continue;
             }
-            //check disc capacity 
+            //check disc capacity
             if (config['checkList']['check_disc_capacity']) {
                 await this.checkDiskCapacity(network);
             }
@@ -30,12 +30,12 @@ class MonitorIndexer {
 
             // Check if Graph node is up
             if (config['checkList']['check_if_graph_node_up']) {
-                if (DataToMonitorStatusObj.checkIfGraphNodeUP(graphIndexerNode)) {
+                if (await DataToMonitorStatusObj.checkGraphNodeStatus(graphIndexerNode)) {
                     console.log("*****graph node is up****");
                 } else {
                     const errorMail = `Error archiveNode ${network} Graph node is not up \nNetwork: ${network} \nGraph Node provided: ${graphIndexerNode}`;
-                    this.sendMail(`Alert - Graph node for ${currentNetwork} is down`, errorMail);
-                    console.log("*******NO, graph node not working*******");
+                    this.sendMail(`Alert - Graph node for ${network} is down`, errorMail);
+                    console.log(`******* Graph node ${network} not working *******`);
                 }
             }
 
@@ -111,10 +111,10 @@ class MonitorIndexer {
         // Creating  DataToMonitorStatusObj instance
         let DataToMonitorStatusObj = new DataToMonitorStatus();
         // get disc capacity
-        const discCapacity = await DataToMonitorStatusObj.getDiscCapacity(network);
+        const remainingSize = await DataToMonitorStatusObj.getDiscCapacity(network);
         // Compare the disk size with the alert constant
-        if (discCapacity < process.env.DISC_CAPACITY_ALERT) {
-            let errorMail = `Error archiveNode low disk capacity ${diskSize}\nNetwork: ${network}`;
+        if (remainingSize < process.env.DISC_CAPACITY_ALERT) {
+            let errorMail = `Error archiveNode low disk capacity, remaining ${remainingSize}\nNetwork: ${network}`;
             this.sendMail(`Alert - RPC node for ${network} is lacking disk space`, errorMail);
         }
     }
