@@ -2,6 +2,7 @@ version: '3.5'
 
 services:
     monitoring-indexer:
+        container_name: indexer-monitoring
         image: monitor-indexer
         build:
             context: .

@@ -135,11 +135,7 @@ export class DataToMonitorStatus {
 
         const status = response.status;
 
-        if (status === 200) {
-            return true;
-        } else {
-            return false;
-        }
+        return status === 200;
     }
 
     /**

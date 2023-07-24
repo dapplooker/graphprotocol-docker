@@ -7,13 +7,15 @@ pool_size = 10
 [chains]
 ingestor = "<indexer_container_name>"
 
+
 [chains.mainnet]
 shard = "primary"
 provider = [ { label = "<network>", url = "<node url>", features = ["archive", "traces"] } ]
 
+
 [deployment]
 [[deployment.rule]]
-indexers = [ "<indexer_container_name>" ]
+indexers = [ "default" ]
 
 
 [general]
