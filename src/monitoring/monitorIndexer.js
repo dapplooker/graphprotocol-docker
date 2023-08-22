@@ -108,15 +108,23 @@ class MonitorIndexer {
     }
 
     async checkDiskCapacity(network) {
-        // Creating  DataToMonitorStatusObj instance
-        let DataToMonitorStatusObj = new DataToMonitorStatus();
-        // get disc capacity
-        const remainingSize = await DataToMonitorStatusObj.getDiscCapacity(network);
-        // Compare the disk size with the alert constant
-        if (remainingSize < process.env.DISC_CAPACITY_ALERT) {
-            let errorMail = `Error archiveNode low disk capacity, remaining ${remainingSize}\nNetwork: ${network}`;
-            this.sendMail(`Alert - RPC node for ${network} is lacking disk space`, errorMail);
-        }
+      // Creating  DataToMonitorStatusObj instance
+      let DataToMonitorStatusObj = new DataToMonitorStatus();
+      // get disc capacity
+      const storagesToCheck = await DataToMonitorStatusObj.storagesToCheck(
+        network
+      );
+      const isDiscCapacityReached = await DataToMonitorStatusObj.getDiscCapacity(
+        network,
+        storagesToCheck
+      );
+      if (isDiscCapacityReached) {
+        let errorMail = `Error archiveNode low disk capacity, remaining ${remainingSize}\nNetwork: ${network}`;
+        this.sendMail(
+          `Alert - RPC node for ${network} is lacking disk space`,
+          errorMail
+        );
+      }
     }
 
 }

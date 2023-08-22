@@ -139,49 +139,100 @@ export class DataToMonitorStatus {
     }
 
     /**
-     * Asynchronously checks the disk space for the specified network machine.
-     *
-     * @param {string} network - The name of the network machine.
-     * @returns {Promise<number|null>} A promise that resolves with the disk capacity in megabytes (MB),
-     *          or null if the information is not found.
-     */
-    async getDiscCapacity(network) {
-        console.log(`========= Checking disk space for ${network} machine =========`);
-        return new Promise((resolve, reject) => {
-            // Execute the 'df -h --block-size=M' command to get disk capacity information in human-readable format
-            exec('df -h --block-size=G', (error, stdout, stderr) => {
-                if (error) {
-                    console.error(`Error executing command: ${error.message}`);
-                    reject(error);
-                    return;
-                }
-                if (stderr) {
-                    console.error(`Command stderr: ${stderr}`);
-                    reject(stderr);
-                    return;
-                }
+   * Asynchronously checks the disk space for the specified network machine.
+   *
+   * @param {string} network - The name of the network machine.
+   * @returns {Promise<number|null>} A promise that resolves with the disk capacity in megabytes (MB),
+   *          or null if the information is not found.
+   */
+  async getDiscCapacity(network, storageDeviceNames) {
+    console.log(
+      `========= Checking disk space for ${network} machine =========`
+    );
+    return new Promise((resolve, reject) => {
+      // Execute the 'df -h --block-size=M' command to get disk capacity information in human-readable format
+      exec("df -h --block-size=G", (error, stdout, stderr) => {
+        if (error) {
+          console.error(`Error executing command: ${error.message}`);
+          reject(error);
+          return;
+        }
+        if (stderr) {
+          console.error(`Command stderr: ${stderr}`);
+          reject(stderr);
+          return;
+        }
 
-                // Split the command output into an array of lines
-                const diskCapacityLines = stdout.trim().split('\n');
+        // Split the command output into an array of lines
+        const diskCapacityLines = stdout.trim().split("\n");
+        // Find the line that contains the device name
+        for (const deviceName of storageDeviceNames) {
+          const diskCapacityLine = diskCapacityLines.find((line) =>
+            line.includes(deviceName)
+          );
 
-                // Find the line that contains '/dev/nvme0n1p5'
-                const diskCapacityLine = diskCapacityLines.find(line => line.includes('/dev/nvme0n1p5'));
+          if (diskCapacityLine) {
+            // Extract the disk size from the line
+            const diskCapacityColumns = diskCapacityLine.split(/\s+/);
+            const usagePercentage = parseFloat(
+              diskCapacityColumns[4].replace("%", "")
+            );
+            console.log(
+              `Storage Device: ${deviceName}, Usage Percentage: ${usagePercentage}%`
+            );
+            if (usagePercentage >= process.env.DISC_CAPACITY_ALERT) {
+              resolve(true);
+              return; // Exit the loop and function
+            }
+          } else {
+            console.log(`No information found for ${deviceName}.`);
+          }
+        }
+        // If no device had usagePercentage >= 90, resolve with false
+        resolve(false);
+      });
+    });
+  }
 
-                if (diskCapacityLine) {
-                    // Extract the disk size from the line
-                    const diskCapacityColumns = diskCapacityLine.split(/\s+/);
-                    const diskSize = diskCapacityColumns[1];
-                    console.log(`Host Disk Capacity: ${diskSize}`);
-                    // Remove the 'G' suffix from the disk size and convert it to an integer
-                    let diskSizeInt = diskSize.substring(0, diskSize.length - 1);
-                    resolve(diskSizeInt);
-                } else {
-                    console.log(`No information found for /dev/nvme0n1p5.`);
-                    resolve(null);
-                }
-            });
+  async storagesToCheck(network) {
+    return new Promise((resolve, reject) => {
+      // Execute the 'lsblk' command to get disk capacity information
+      exec("lsblk", (error, stdout, stderr) => {
+        if (error) {
+          console.error(`Error executing command: ${error.message}`);
+          reject(error);
+          return;
+        }
+        if (stderr) {
+          console.error(`Command stderr: ${stderr}`);
+          reject(stderr);
+          return;
+        }
+        // Split the command output into an array of lines
+        const diskCapacityLines = stdout.trim().split("\n");
+        const relevantDevices = diskCapacityLines.filter(
+          (line) => line.includes("nvme") && line.includes("G")
+        );
+        // Filter relevant devices based on size greater than 20G
+        const devicesAbove20G = relevantDevices.filter((line) => {
+          const columns = line.split(/\s+/);
+          const size = columns[3].replace("G", ""); // Remove 'G' suffix
+          return parseFloat(size) > 20;
         });
-    }
+
+        // Extract the names of devices that meet the criteria
+        const deviceNamesAbove20G = devicesAbove20G.map((line) => {
+          const columns = line.split(/\s+/);
+          const deviceName = columns[0];
+          // Remove '├─' or other characters if present
+          return deviceName.replace(/[^a-zA-Z0-9-]/g, "");
+        });
+        console.log(deviceNamesAbove20G);
+        // Return the array of device names
+        resolve(deviceNamesAbove20G);
+      });
+    });
+  }
 
 
 }
