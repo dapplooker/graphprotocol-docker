@@ -233,6 +233,5 @@ export class DataToMonitorStatus {
       });
     });
   }
-
-
 }
+

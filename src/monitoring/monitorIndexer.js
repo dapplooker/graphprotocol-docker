@@ -126,7 +126,7 @@ class MonitorIndexer {
         );
       }
     }
-
 }
 
 export default new MonitorIndexer()
+
