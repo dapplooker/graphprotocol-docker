@@ -223,9 +223,12 @@ export class DataToMonitorStatus {
         // Extract the names of devices that meet the criteria
         const deviceNamesAbove20G = devicesAbove20G.map((line) => {
           const columns = line.split(/\s+/);
-          const deviceName = columns[0];
+          let deviceName = columns[0];
           // Remove '├─' or other characters if present
-          return deviceName.replace(/[^a-zA-Z0-9-]/g, "");
+          deviceName = deviceName.replace(/[^a-zA-Z0-9-]/g, "");
+          // Remove "-" character
+          deviceName = deviceName.replace(/^-/, "");
+          return deviceName;
         });
         console.log(deviceNamesAbove20G);
         // Return the array of device names
