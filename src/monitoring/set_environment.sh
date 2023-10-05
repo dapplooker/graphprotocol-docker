@@ -9,4 +9,4 @@ export TO_EMAILS=
 
 # Difference between blocks
 export BLOCK_DIFFERENCE_ALERT=10
-export DISC_CAPACITY_ALERT=100
+export DISC_CAPACITY_ALERT=90
