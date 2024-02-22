@@ -236,5 +236,62 @@ export class DataToMonitorStatus {
       });
     });
   }
+
+  async checkContainerStatus() {
+    return new Promise((resolve, reject) => {
+      let activeContainers = [];
+      let inactiveContainers = [];
+      exec("docker ps -aq", (error, stdout, stderr) => {
+        if (error) {
+          console.error(`Error executing Docker command: ${error}`);
+          reject(error);
+          return;
+        }
+
+        if (stderr) {
+          console.error(`Docker command returned error: ${stderr}`);
+          reject(stderr);
+          return;
+        }
+        const containerIds = stdout.trim().split("\n").filter(Boolean);
+        let completedCalls = 0;
+        containerIds.forEach((containerId, index) => {
+          exec(
+            `docker inspect --format '{{json .Name}}:{{json .State}}' ${containerId}`,
+            (inspectError, inspectStdout, inspectStderr) => {
+              if (inspectError) {
+                console.error(`Error executing 'docker inspect' command: ${inspectError}`);
+                reject(inspectError);
+                return;
+              }
+
+              if (inspectStderr) {
+                console.error(`'docker inspect' command returned error: ${inspectStderr}`);
+                reject(inspectStderr);
+                return;
+              }
+              const [nameAndStateStr] = inspectStdout.trim().split(":");
+              const containerName = JSON.parse(nameAndStateStr.trim());
+              const state = JSON.parse(inspectStdout.substring(nameAndStateStr.length + 1));
+              if (
+                state.Running === true &&
+                state.Status === "running" &&
+                state.Paused === false &&
+                state.Restarting === false
+              ) {
+                activeContainers.push({ containerID: containerId, containerName: containerName });
+              } else {
+                inactiveContainers.push({ containerID: containerId, containerName: containerName });
+              }
+              completedCalls++;
+              if (completedCalls === containerIds.length) {
+                resolve({ activeContainers, inactiveContainers });
+              }
+            }
+          );
+        });
+      });
+    });
+  }
 }
 
