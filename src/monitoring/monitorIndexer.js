@@ -54,6 +54,7 @@ class MonitorIndexer {
             // check for errors
             this.checkForErrors(externalRpcNodeLatestBlock, archiveNodeLatestBlock, subgraphData, network, config['checkList']);
         }
+        this.getContainerStatus();
     }
 
 
@@ -126,7 +127,18 @@ class MonitorIndexer {
         );
       }
     }
+
+    async getContainerStatus() {
+        let DataToMonitorStatusObj = new DataToMonitorStatus();
+        const { activeContainers, inactiveContainers } = await DataToMonitorStatusObj.checkContainerStatus();
+        for (const container of inactiveContainers) {
+          let errorMail = `Error Container ${container.containerName} is not Running`;
+          this.sendMail(
+            `Alert - Container with name ${container.containerName} and id ${container.containerID} is not Running`,
+            errorMail
+          );
+        }
+      }
 }
 
 export default new MonitorIndexer()
-
