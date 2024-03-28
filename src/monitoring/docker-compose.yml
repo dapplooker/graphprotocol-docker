@@ -4,6 +4,8 @@ services:
     monitoring-indexer:
         container_name: indexer-monitoring
         image: monitor-indexer
+        volumes:
+            - /var/run/docker.sock:/var/run/docker.sock
         build:
             context: .
             dockerfile: Dockerfile
