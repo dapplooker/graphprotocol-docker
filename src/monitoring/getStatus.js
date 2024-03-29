@@ -257,7 +257,6 @@ export class DataToMonitorStatus {
             activeContainers.push({ containerID: containerInfo.Id, containerName: containerInfo.Names[0] });
           }
         });
-        console.log({ activeContainers, inactiveContainers });
         resolve({ activeContainers, inactiveContainers });
       });
     });
