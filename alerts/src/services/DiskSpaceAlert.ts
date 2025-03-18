@@ -11,6 +11,7 @@ export class DiskSpaceAlert {
 
     private async checkDiskSpace() {
         return new Promise((resolve, reject) => {
+            const oThis = this;
             exec("df -h / | awk 'NR==2 {print $2, $3, $4, $5}'", async (error, stdout, stderr) => {
                 if (error || stderr) {
                     console.error("DiskSpaceAlert::checkDiskSpace::Error checking disk space:", error || stderr);
@@ -40,11 +41,24 @@ export class DiskSpaceAlert {
 
                     console.log(`DiskSpaceAlert::checkDiskSpace::${JSON.stringify(alertMessage)}`);
                     await this.discordBot.sendAlert(alertMessage);
+
+                    // Cleaning disk
+                    oThis.deleteLogFiles()
                 } else {
                     console.log(`DiskSpaceAlert::checkDiskSpace::Disk usage is normal: ${usedPercentage}%`);
                 }
                 resolve();
             });
         });
+    }
+
+    private deleteLogFiles(): void {
+        try {
+            exec("rm -f /var/log/syslog.*");
+            exec("npm cache clean --force");
+            console.log("DiskSpaceAlert::deleteLogFiles::Old syslog files deleted.");
+        } catch (error) {
+            console.error("Failed to delete log files:", error);
+        }
     }
 }
