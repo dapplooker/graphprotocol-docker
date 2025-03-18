@@ -3,3 +3,5 @@ dist
 tmp/*
 src/discordMonitoring/node_modules
 src/discordMonitoring/dist
+
+.idea
