@@ -1,0 +1,4 @@
+{
+    "check_disk_space": true,
+    "check_container_status": false
+}
