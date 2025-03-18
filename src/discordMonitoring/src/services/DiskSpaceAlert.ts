@@ -9,7 +9,7 @@ export class DiskSpaceAlert {
         await this.checkDiskSpace();
     }
 
-    private async checkDiskSpace(): Promise<void> {
+    private async checkDiskSpace() {
         return new Promise((resolve, reject) => {
             exec("df -h / | awk 'NR==2 {print $2, $3, $4, $5}'", async (error, stdout, stderr) => {
                 if (error || stderr) {
@@ -35,7 +35,8 @@ export class DiskSpaceAlert {
                         `📦 **Total Space:** ${totalSpace}\n` +
                         `📊 **Used Space:** ${usedSpace}\n` +
                         `🟢 **Available Space:** ${availableSpace}\n` +
-                        `⚠️ **Please take action to free up space immediately!**`;
+                        `⚠️ **Please take action to free up space immediately!**` +
+                        `cc: @realchoubey @hitesh23k @ank_dev`;
 
                     console.log(`DiskSpaceAlert::checkDiskSpace::${JSON.stringify(alertMessage)}`);
                     await this.discordBot.sendAlert(alertMessage);
