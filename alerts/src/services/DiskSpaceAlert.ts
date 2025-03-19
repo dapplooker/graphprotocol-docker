@@ -9,8 +9,8 @@ export class DiskSpaceAlert {
         await this.checkDiskSpace();
     }
 
-    private async checkDiskSpace() {
-        return new Promise((resolve, reject) => {
+    private async checkDiskSpace(): Promise<void> {
+        return new Promise<void>((resolve, reject) => {
             const oThis = this;
             exec("df -h / | awk 'NR==2 {print $2, $3, $4, $5}'", async (error, stdout, stderr) => {
                 if (error || stderr) {
