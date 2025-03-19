@@ -37,7 +37,7 @@ export class DiskSpaceAlert {
                         `📊 **Used Space:** ${usedSpace}\n` +
                         `🟢 **Available Space:** ${availableSpace}\n` +
                         `⚠️ **Please take action to free up space immediately!**\n` +
-                        `cc: @870652852685647963 @810776536415862784 @1302833409063649284`;
+                        `cc: <@870652852685647963> <@810776536415862784> <@1302833409063649284>`;
                         // Choubey, Hitesh, Ankur
 
                     console.log(`DiskSpaceAlert::checkDiskSpace::${JSON.stringify(alertMessage)}`);
