@@ -9,9 +9,10 @@ export class DiskSpaceAlert {
         await this.checkDiskSpace();
     }
 
-    private async checkDiskSpace() {
-        return new Promise((resolve, reject) => {
+    private async checkDiskSpace(): Promise<void> {
+        return new Promise<void>((resolve, reject) => {
             const oThis = this;
+            const ids = process.env.DISCORD_USER_ID_TAGS;
             exec("df -h / | awk 'NR==2 {print $2, $3, $4, $5}'", async (error, stdout, stderr) => {
                 if (error || stderr) {
                     console.error("DiskSpaceAlert::checkDiskSpace::Error checking disk space:", error || stderr);
@@ -30,6 +31,7 @@ export class DiskSpaceAlert {
                 console.log(`DiskSpaceAlert::checkDiskSpace::Parsed Disk Usage: ${usedPercentage}%`);
 
                 if (usedPercentage > this.threshold) {
+                    const formattedIds = oThis.formatDiscordMentions(ids)
                     const alertMessage = `🚨 **ALERT: High Disk Usage Detected!** 🚨\n\n` +
                         `🔴 **Server:** ${hostname}\n` +
                         `💾 **Disk Usage:** ${usedPercentage}%\n` +
@@ -37,7 +39,7 @@ export class DiskSpaceAlert {
                         `📊 **Used Space:** ${usedSpace}\n` +
                         `🟢 **Available Space:** ${availableSpace}\n` +
                         `⚠️ **Please take action to free up space immediately!**` +
-                        `cc: @realchoubey @hitesh23k @ank_dev`;
+                        `${formattedIds ? `\ncc: ${formattedIds}` : `""`}`;
 
                     console.log(`DiskSpaceAlert::checkDiskSpace::${JSON.stringify(alertMessage)}`);
                     await this.discordBot.sendAlert(alertMessage);
@@ -50,6 +52,18 @@ export class DiskSpaceAlert {
                 resolve();
             });
         });
+    }
+
+    private formatDiscordMentions(ids: string): string {
+        if (!ids) {
+            console.error("DiskSpaceAlert::checkDiskSpace: No id received");
+            return "";
+        }
+
+        return ids
+            .split(",")
+            .map(id => `<@${id.trim()}>`)
+            .join(" ");
     }
 
     private deleteLogFiles(): void {
