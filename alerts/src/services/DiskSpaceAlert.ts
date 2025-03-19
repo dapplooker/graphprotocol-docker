@@ -39,7 +39,7 @@ export class DiskSpaceAlert {
                         `📊 **Used Space:** ${usedSpace}\n` +
                         `🟢 **Available Space:** ${availableSpace}\n` +
                         `⚠️ **Please take action to free up space immediately!**` +
-                        `${formattedIds ? `\ncc: ${formattedIds}` ? `""`}`;
+                        `${formattedIds ? `\ncc: ${formattedIds}` : `""`}`;
 
                     console.log(`DiskSpaceAlert::checkDiskSpace::${JSON.stringify(alertMessage)}`);
                     await this.discordBot.sendAlert(alertMessage);
