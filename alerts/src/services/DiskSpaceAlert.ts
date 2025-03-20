@@ -33,13 +33,14 @@ export class DiskSpaceAlert {
                 if (usedPercentage > this.threshold) {
                     const formattedIds = oThis.formatDiscordMentions(ids)
                     const alertMessage = `🚨 **ALERT: High Disk Usage Detected!** 🚨\n\n` +
-                        `🔴 **Server:** ${hostname}\n` +
-                        `💾 **Disk Usage:** ${usedPercentage}%\n` +
-                        `📦 **Total Space:** ${totalSpace}\n` +
-                        `📊 **Used Space:** ${usedSpace}\n` +
-                        `🟢 **Available Space:** ${availableSpace}\n` +
+                        `*Server:* **${hostname}**\n` +
+                        `*Disk Usage:* **${usedPercentage}%**\n` +
+                        `*Total Space:* **${totalSpace}**\n` +
+                        `*Used Space:* **${usedSpace}**\n` +
+                        `*Available Space:* **${availableSpace}**\n\n` +
                         `⚠️ **Please take action to free up space immediately!**` +
-                        `${formattedIds ? `\ncc: ${formattedIds}` : `""`}`;
+                        `${formattedIds ? `\ncc: ${formattedIds}` : `""`}\n\n` +
+                        `For cleanup guidelines, refer to: **[Space Cleanup Checklist](https://github.com/dapplooker/devops/blob/main/src/devops/space-cleanup.md#space-cleanup-checklist)**`;
 
                     console.log(`DiskSpaceAlert::checkDiskSpace::${JSON.stringify(alertMessage)}`);
                     await this.discordBot.sendAlert(alertMessage);
