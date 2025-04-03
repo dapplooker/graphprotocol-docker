@@ -32,7 +32,7 @@ export class DiskSpaceAlert {
 
                 if (usedPercentage > this.threshold) {
                     const formattedIds = oThis.formatDiscordMentions(ids)
-                    const alertMessage = `🚨 **ALERT: High Disk Usage Detected!** 🚨\n\n` +
+                    const alertMessage = `🚨 **ALERT: High Disk Usage Detected !** 🚨\n\n` +
                         `*Server:* **${hostname}**\n` +
                         `*Disk Usage:* **${usedPercentage}%**\n` +
                         `*Total Space:* **${totalSpace}**\n` +
@@ -69,7 +69,8 @@ export class DiskSpaceAlert {
 
     private deleteLogFiles(): void {
         try {
-            exec("rm -f /var/log/syslog.*");
+            exec("journalctl --vacuum-size=500M");
+            exec("rm -rf /var/log/*.gz")
             exec("npm cache clean --force");
             console.log("DiskSpaceAlert::deleteLogFiles::Old syslog files deleted.");
         } catch (error) {
