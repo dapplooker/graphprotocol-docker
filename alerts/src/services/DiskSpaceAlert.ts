@@ -85,9 +85,7 @@ export class DiskSpaceAlert {
 
     private async checkDiskSpaceAfterCleanup(): Promise<void> {
         return new Promise<void>((resolve, reject) => {
-            const hostname = process.env.HOST_NAME;
-    
-            exec("df -h / | awk 'NR==2 {print $2, $3, $4, $5}'", async (error, stdout, stderr) => {
+            exec("df -h / | awk 'NR==2 {print $4}'", async (error, stdout, stderr) => {
                 if (error || stderr) {
                     console.error("DiskSpaceAlert::checkDiskSpaceAfterCleanup::Error:", error || stderr);
                     return reject(error || stderr);
@@ -98,23 +96,16 @@ export class DiskSpaceAlert {
                     return reject(new Error("No output from disk check"));
                 }
     
-                const [totalSpace, usedSpace, availableSpace, usedPercentageStr] = stdout.trim().split(/\s+/);
-                const usedPercentage = parseInt(usedPercentageStr.replace("%", ""), 10);
+                const availableSpace = stdout.trim();
+                const message = `*Available space after cleanup:* **${availableSpace}**`;
     
-                const summaryMessage =
-                    `📊 **Disk Usage After Cleanup** 📊\n\n` +
-                    `*Server:* **${hostname}**\n` +
-                    `*Disk Usage:* **${usedPercentage}%**\n` +
-                    `*Total Space:* **${totalSpace}**\n` +
-                    `*Used Space:* **${usedSpace}**\n` +
-                    `*Available Space:* **${availableSpace}**\n`;
-    
-                console.log(`DiskSpaceAlert::checkDiskSpaceAfterCleanup::${summaryMessage}`);
-                await this.discordBot.sendAlert(summaryMessage);
+                console.log(`DiskSpaceAlert::checkDiskSpaceAfterCleanup::${message}`);
+                await this.discordBot.sendAlert(message);
     
                 resolve();
             });
         });
     }
+    
     
 }
