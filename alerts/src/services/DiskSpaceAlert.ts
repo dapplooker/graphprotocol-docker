@@ -32,7 +32,7 @@ export class DiskSpaceAlert {
 
                 if (usedPercentage > this.threshold) {
                     const formattedIds = oThis.formatDiscordMentions(ids)
-                    const alertMessage = `🚨 **ALERT: High Disk Usage Detected !** 🚨\n\n` +
+                    const alertMessage = `🚨 **ALERT: High Disk Usage Detected!** 🚨\n\n` +
                         `*Server:* **${hostname}**\n` +
                         `*Disk Usage:* **${usedPercentage}%**\n` +
                         `*Total Space:* **${totalSpace}**\n` +
