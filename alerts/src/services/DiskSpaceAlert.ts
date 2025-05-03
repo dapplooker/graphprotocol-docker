@@ -47,6 +47,11 @@ export class DiskSpaceAlert {
 
                     // Cleaning disk
                     oThis.deleteLogFiles()
+                    // post cleaning space check
+                    setTimeout(async () => {
+                        await oThis.checkDiskSpaceAfterCleanup();
+                    }, 3000)
+
                 } else {
                     console.log(`DiskSpaceAlert::checkDiskSpace::Disk usage is normal: ${usedPercentage}%`);
                 }
@@ -69,11 +74,38 @@ export class DiskSpaceAlert {
 
     private deleteLogFiles(): void {
         try {
-            exec("rm -f /var/log/syslog.*");
+            exec("journalctl --vacuum-size=500M");
+            exec("rm -rf /var/log/*.gz")
             exec("npm cache clean --force");
             console.log("DiskSpaceAlert::deleteLogFiles::Old syslog files deleted.");
         } catch (error) {
             console.error("Failed to delete log files:", error);
         }
     }
+
+    private async checkDiskSpaceAfterCleanup(): Promise<void> {
+        return new Promise<void>((resolve, reject) => {
+            exec("df -h / | awk 'NR==2 {print $4}'", async (error, stdout, stderr) => {
+                if (error || stderr) {
+                    console.error("DiskSpaceAlert::checkDiskSpaceAfterCleanup::Error:", error || stderr);
+                    return reject(error || stderr);
+                }
+    
+                if (!stdout) {
+                    console.error("DiskSpaceAlert::checkDiskSpaceAfterCleanup::No output received.");
+                    return reject(new Error("No output from disk check"));
+                }
+    
+                const availableSpace = stdout.trim();
+                const message = `*Available space after cleanup:* **${availableSpace}**`;
+    
+                console.log(`DiskSpaceAlert::checkDiskSpaceAfterCleanup::${message}`);
+                await this.discordBot.sendAlert(message);
+    
+                resolve();
+            });
+        });
+    }
+    
+    
 }
