@@ -132,4 +132,30 @@ export class DiskSpaceAlert {
             console.error("DiskSpaceAlert::deleteLogFiles::Failed to delete log files:", error);
         }
     }
+
+    private async checkDiskSpaceAfterCleanup(): Promise<void> {
+        return new Promise<void>((resolve, reject) => {
+            exec("df -h / | awk 'NR==2 {print $4}'", async (error, stdout, stderr) => {
+                if (error || stderr) {
+                    console.error("DiskSpaceAlert::checkDiskSpaceAfterCleanup::Error:", error || stderr);
+                    return reject(error || stderr);
+                }
+    
+                if (!stdout) {
+                    console.error("DiskSpaceAlert::checkDiskSpaceAfterCleanup::No output received.");
+                    return reject(new Error("No output from disk check"));
+                }
+    
+                const availableSpace = stdout.trim();
+                const message = `*Available space after cleanup:* **${availableSpace}**`;
+    
+                console.log(`DiskSpaceAlert::checkDiskSpaceAfterCleanup::${message}`);
+                await this.discordBot.sendAlert(message);
+    
+                resolve();
+            });
+        });
+    }
+    
+    
 }
