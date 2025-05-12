@@ -1,4 +1,4 @@
-import { exec } from "child_process";
+import { exec, execSync } from "child_process";
 import { DiscordBotManager } from "../discord/DiscordBotManager";
 
 export class DiskSpaceAlert {
@@ -9,60 +9,109 @@ export class DiskSpaceAlert {
         await this.checkDiskSpace();
     }
 
-    private async checkDiskSpace(): Promise<void> {
-        return new Promise<void>((resolve, reject) => {
-            const oThis = this;
-            const ids = process.env.DISCORD_USER_ID_TAGS;
-            exec("df -h / | awk 'NR==2 {print $2, $3, $4, $5}'", async (error, stdout, stderr) => {
+    /**
+     * Execute a shell command and return the output
+     */
+    private executeCommand(command: string, context: string): Promise<string> {
+        return new Promise<string>((resolve, reject) => {
+            exec(command, (error, stdout, stderr) => {
                 if (error || stderr) {
-                    console.error("DiskSpaceAlert::checkDiskSpace::Error checking disk space:", error || stderr);
+                    console.error(`DiskSpaceAlert::${context}::Error:`, error || stderr);
                     return reject(error || stderr);
                 }
 
                 if (!stdout) {
-                    console.error("DiskSpaceAlert::checkDiskSpace::No output received from disk check command.");
-                    return reject(new Error("No output from disk check"));
+                    console.error(`DiskSpaceAlert::${context}::No output received.`);
+                    return reject(new Error("No output from command"));
                 }
 
-                const [totalSpace, usedSpace, availableSpace, usedPercentageStr] = stdout.trim().split(/\s+/);
-                const usedPercentage = parseInt(usedPercentageStr.replace("%", ""), 10);
-                const hostname = process.env.HOST_NAME;
-
-                console.log(`DiskSpaceAlert::checkDiskSpace::Parsed Disk Usage: ${usedPercentage}%`);
-
-                if (usedPercentage > this.threshold) {
-                    const formattedIds = oThis.formatDiscordMentions(ids)
-                    const alertMessage = `🚨 **ALERT: High Disk Usage Detected!** 🚨\n\n` +
-                        `*Server:* **${hostname}**\n` +
-                        `*Disk Usage:* **${usedPercentage}%**\n` +
-                        `*Total Space:* **${totalSpace}**\n` +
-                        `*Used Space:* **${usedSpace}**\n` +
-                        `*Available Space:* **${availableSpace}**\n\n` +
-                        `⚠️ **Please take action to free up space immediately!**` +
-                        `${formattedIds ? `\ncc: ${formattedIds}` : `""`}\n\n` +
-                        `For cleanup guidelines, refer to: **[Space Cleanup Checklist](https://github.com/dapplooker/devops/blob/main/src/devops/space-cleanup.md#space-cleanup-checklist)**`;
-
-                    console.log(`DiskSpaceAlert::checkDiskSpace::${JSON.stringify(alertMessage)}`);
-                    await this.discordBot.sendAlert(alertMessage);
-
-                    // Cleaning disk
-                    oThis.deleteLogFiles()
-                    // post cleaning space check
-                    setTimeout(async () => {
-                        await oThis.checkDiskSpaceAfterCleanup();
-                    }, 3000)
-
-                } else {
-                    console.log(`DiskSpaceAlert::checkDiskSpace::Disk usage is normal: ${usedPercentage}%`);
-                }
-                resolve();
+                resolve(stdout.trim());
             });
         });
     }
 
+    /**
+     * Send an alert message to Discord
+     */
+    private async sendAlertMessage(message: string): Promise<void> {
+        console.log(`DiskSpaceAlert::sendAlertMessage::${message}`);
+        await this.discordBot.sendAlert(message);
+    }
+
+    private async checkDiskSpace(): Promise<void> {
+        try {
+            const ids = process.env.DISCORD_USER_ID_TAGS;
+            const hostname = process.env.HOST_NAME;
+
+            // Get initial disk space info in KB
+            const initialAvailableSpaceInKb = await this.executeCommand("df -k / | awk 'NR==2 {print $4}'", "initialDiskKb");
+            const initialAvailableKb = parseInt(initialAvailableSpaceInKb, 10);
+
+            // Get initial disk space information
+            const diskInfo = await this.executeCommand("df -h / | awk 'NR==2 {print $2, $3, $4, $5}'", "checkDiskSpace");
+            const [totalSpace, usedSpace, availableSpace, usedPercentageStr] = diskInfo.split(/\s+/);
+            const usedPercentage = parseInt(usedPercentageStr.replace("%", ""), 10);
+
+            console.log(`DiskSpaceAlert::checkDiskSpace::Parsed Disk Usage: ${usedPercentage}%`);
+
+            let cleanupPerformed = false;
+            let newAvailableSpace = availableSpace;
+            let spaceFreed = "";
+
+            // If disk usage is above threshold, perform cleanup
+            if (usedPercentage > this.threshold) {
+                console.log(`DiskSpaceAlert::checkDiskSpace::Disk usage is high (${usedPercentage}%). Performing cleanup...`);
+
+                // Perform cleanup
+                this.deleteLogFiles();
+
+                // Wait for cleanup to complete
+                await new Promise(resolve => setTimeout(resolve, 3000));
+                cleanupPerformed = true;
+
+                // Get updated disk space info in KB
+                const updatedAvailableSpaceInKb = await this.executeCommand("df -k / | awk 'NR==2 {print $4}'", "updatedDiskKb");
+                const finalAvailableKb = parseInt(updatedAvailableSpaceInKb, 10);
+                const diffKb = Math.abs(finalAvailableKb - initialAvailableKb);
+                if (diffKb > 0) {
+                    const freedGb = (diffKb / (1024 * 1024)).toFixed(2);
+                    spaceFreed = `*Space Freed After Cleanup:* **${freedGb} GB**\n`;
+                } else {
+                    spaceFreed = `*Space Freed After Cleanup:* **0.00 GB**\n`;
+                }
+                    
+                const freedGb = (diffKb / (1024 * 1024)).toFixed(2);
+                spaceFreed = `*Space Freed After Cleanup:* **${freedGb} GB**\n`;
+
+                // Get updated disk space information after cleanup
+                const updatedDiskInfo = await this.executeCommand("df -h / | awk 'NR==2 {print $4}'", "postCleanupCheck");
+                newAvailableSpace = updatedDiskInfo;
+                const formattedIds = this.formatDiscordMentions(ids);
+
+                // send alert AFTER cleanup
+                const alertMessage = `🚨 **ALERT: High Disk Usage Detected!** 🚨\n\n` +
+                    `*Server:* **${hostname}**\n` +
+                    `*Initial Disk Usage:* **${usedPercentage}%**\n` +
+                    `*Total Space:* **${totalSpace}**\n` +
+                    `*Initial Used Space:* **${usedSpace}**\n` +
+                    `*Initial Available Space:* **${availableSpace}**\n` +
+                    (cleanupPerformed ? `*Available Space After Cleanup:* **${newAvailableSpace}**\n${spaceFreed}` : `\n\n`) +
+                    `⚠️ **Please take action to free up space immediately!**` +
+                    `${formattedIds ? `\ncc: ${formattedIds}` : ""}\n\n` +
+                    `For cleanup guidelines, refer to: **[Space Cleanup Checklist](https://github.com/dapplooker/devops/blob/main/src/devops/space-cleanup.md#space-cleanup-checklist)**`;
+
+                await this.sendAlertMessage(alertMessage);
+            } else {
+                console.log(`DiskSpaceAlert::checkDiskSpace::Disk usage is normal: ${usedPercentage}%`);
+            }
+        } catch (error) {
+            console.error("DiskSpaceAlert::checkDiskSpace::Failed:", error);
+        }
+    }
+
     private formatDiscordMentions(ids: string): string {
         if (!ids) {
-            console.error("DiskSpaceAlert::checkDiskSpace: No id received");
+            console.error("DiskSpaceAlert::formatDiscordMentions::No id received");
             return "";
         }
 
@@ -74,12 +123,13 @@ export class DiskSpaceAlert {
 
     private deleteLogFiles(): void {
         try {
-            exec("journalctl --vacuum-size=500M");
-            exec("rm -rf /var/log/*.gz")
-            exec("npm cache clean --force");
+            // Execute cleanup commands while waiting for results
+            execSync("journalctl --vacuum-size=500M");
+            execSync("rm -rf /var/log/*.gz");
+            execSync("npm cache clean --force");
             console.log("DiskSpaceAlert::deleteLogFiles::Old syslog files deleted.");
         } catch (error) {
-            console.error("Failed to delete log files:", error);
+            console.error("DiskSpaceAlert::deleteLogFiles::Failed to delete log files:", error);
         }
     }
 
