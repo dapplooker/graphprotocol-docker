@@ -127,6 +127,7 @@ export class DiskSpaceAlert {
             execSync("journalctl --vacuum-size=500M");
             execSync("rm -rf /var/log/*.gz");
             execSync("npm cache clean --force");
+            execSync("truncate -s 500M /var/log/syslog.1");
             console.log("DiskSpaceAlert::deleteLogFiles::Old syslog files deleted.");
         } catch (error) {
             console.error("DiskSpaceAlert::deleteLogFiles::Failed to delete log files:", error);
