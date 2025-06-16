@@ -121,35 +121,29 @@ export class NodeSyncMonitor {
         return new Promise(resolve => setTimeout(resolve, ms));
     }
 
+    private async getLatestBlockWithRetry(nodeUrl: string, nodeType: string): Promise<number | null> {
+        let block;
+        let retryCount = 3;
+        while(retryCount > 0) {
+            console.log(`NodeSyncMonitor::getLatestBlockWithRetry::Getting latest block from ${nodeType} node ${nodeUrl}. Retry remaining ${retryCount}`);
+            block = await this.getLatestBlock(nodeUrl);
+            if (block === null) {
+                await this.sleep(this.retryDelay);
+                retryCount--;
+            } else {
+                break;
+            }
+        }
+        return block;
+    }
+
     private async monitorNodeSync(): Promise<void> {
         try {
             // Get local block number
-            let localBlock;
-            let retryCount = 3;
-            while(retryCount > 0) {
-                console.log(`NodeSyncMonitor::monitorNodeSync::Getting latest block from url ${this.localNodeUrl}. Retry remaining ${retryCount}`);
-                localBlock = await this.getLatestBlock(this.localNodeUrl);
-                if (localBlock === null) {
-                    await this.sleep(this.retryDelay);
-                    retryCount--;
-                } else {
-                    break;
-                }
-            }
+            const localBlock = await this.getLatestBlockWithRetry(this.localNodeUrl, "local");
 
             // Get public block number
-            let publicBlock;
-            let publicRetryCount = 3;
-            while(publicRetryCount > 0) {
-                console.log(`NodeSyncMonitor::monitorNodeSync::Getting latest block from url ${this.publicNodeUrl}. Retry remaining ${publicRetryCount}`);
-                publicBlock = await this.getLatestBlock(this.publicNodeUrl);
-                if (publicBlock === null) {
-                    await this.sleep(this.retryDelay);
-                    publicRetryCount--;
-                } else {
-                    break;
-                }
-            }
+            const publicBlock = await this.getLatestBlockWithRetry(this.publicNodeUrl, "public");
 
             // Send alert if either node is unreachable
             if (localBlock === null) {
