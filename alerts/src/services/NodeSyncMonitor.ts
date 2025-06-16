@@ -1,16 +1,4 @@
-interface JsonRpcRequest {
-    jsonrpc: string;
-    method: string;
-    params: any[];
-    id: number;
-}
-
-interface JsonRpcResponse {
-    jsonrpc: string;
-    result?: string;
-    error?: any;
-    id: number;
-}
+import { JsonRpcRequest, JsonRpcResponse } from '../types/Types';
 
 export class NodeSyncMonitor {
     private localNodeUrl: string;
@@ -136,35 +124,43 @@ export class NodeSyncMonitor {
     private async monitorNodeSync(): Promise<void> {
         try {
             // Get local block number
-            let localBlock = await this.getLatestBlock(this.localNodeUrl);
-
-            // If first attempt fails, wait and retry
-            if (localBlock === null) {
-                console.log(`NodeSyncMonitor::monitorNodeSync::Initial connection to ${this.nodeName} node failed. Retrying after ${this.retryDelay / 1000} seconds...`);
-                await this.sleep(this.retryDelay);
+            let localBlock;
+            let retryCount = 3;
+            while(retryCount > 0) {
+                console.log(`NodeSyncMonitor::monitorNodeSync::Getting latest block from url ${this.localNodeUrl}. Retry remaining ${retryCount}`);
                 localBlock = await this.getLatestBlock(this.localNodeUrl);
-
-                // If retry also fails, send down alert and exit
                 if (localBlock === null) {
-                    await this.sendNodeDownAlert();
-                    return;
+                    await this.sleep(this.retryDelay);
+                    retryCount--;
+                } else {
+                    break;
                 }
             }
 
             // Get public block number
-            let publicBlock = await this.getLatestBlock(this.publicNodeUrl);
-
-            // If first attempt fails, wait and retry
-            if (publicBlock === null) {
-                console.log(`NodeSyncMonitor::monitorNodeSync::Initial connection to public node failed. Retrying after ${this.retryDelay / 1000} seconds...`);
-                await this.sleep(this.retryDelay);
+            let publicBlock;
+            let publicRetryCount = 3;
+            while(publicRetryCount > 0) {
+                console.log(`NodeSyncMonitor::monitorNodeSync::Getting latest block from url ${this.publicNodeUrl}. Retry remaining ${publicRetryCount}`);
                 publicBlock = await this.getLatestBlock(this.publicNodeUrl);
-
-                // If retry also fails, skip check
                 if (publicBlock === null) {
-                    console.log("NodeSyncMonitor::monitorNodeSync::Could not retrieve public block number after retry. Skipping check.");
-                    return;
+                    await this.sleep(this.retryDelay);
+                    publicRetryCount--;
+                } else {
+                    break;
                 }
+            }
+
+            // Send alert if either node is unreachable
+            if (localBlock === null) {
+                await this.sendNodeDownAlert();
+                return;
+            }
+
+            if (publicBlock === null) {
+                const content = `🚫 ALERT: Public node is unreachable after ${3} retry attempts. Cannot perform sync check.`;
+                await this.sendWebhookMessage(content);
+                return;
             }
 
             console.log(`NodeSyncMonitor::monitorNodeSync::Local block: ${localBlock}, Public block: ${publicBlock}`);

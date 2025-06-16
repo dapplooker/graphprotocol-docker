@@ -4,6 +4,7 @@ import config from "../config.json";
 class NodeSyncMonitorCron {
     async perform(): Promise<void> {
         console.log("NodeSyncMonitorCron::perform::Loading config...");
+        console.log("NodeSyncMonitorCron::perform::Full config:", JSON.stringify(config, null, 2));
 
         if (!config) {
             console.error("NodeSyncMonitorCron::perform::Config file could not be loaded. Exiting...");
@@ -33,3 +34,4 @@ nodeSyncMonitorCron
         );
         process.exit(1);
     }); 
+    
