@@ -1,4 +1,5 @@
 {
     "check_disk_space": true,
-    "check_container_status": false
+    "check_container_status": false,
+    "check_node_sync": true
 }
