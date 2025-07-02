@@ -33,5 +33,4 @@ nodeSyncMonitorCron
             `NodeSyncMonitorCron::error::Error occurred during execution: ${err.message}, Stacktrace: ${err.stack}`
         );
         process.exit(1);
-    }); 
-    
+    });
