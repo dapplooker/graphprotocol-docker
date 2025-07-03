@@ -139,8 +139,9 @@ export class NodeSyncMonitor {
         }
     }
 
-    private async sendNodeDownAlert(nodeName: string): Promise<void> {
-        const content = `🚫 ALERT: **${nodeName}** node is **unreachable** after retry. Node might be **down**.`;
+    private async sendNodeDownAlert(nodeName: string, nodeUrl: string): Promise<void> {
+        const content = `🚫 ALERT: **${nodeName}** node is **unreachable** after retry. Node might be **down**.\n` +
+                       `RPC URL: ${nodeUrl}`;
 
         try {
             await this.sendWebhookMessage(content);
@@ -214,12 +215,13 @@ export class NodeSyncMonitor {
 
             // Send alert if either node is unreachable
             if (localBlock === null) {
-                await this.sendNodeDownAlert(endpoint.name);
+                await this.sendNodeDownAlert(endpoint.name, endpoint.localUrl);
                 return;
             }
 
             if (publicBlock === null) {
-                const content = `🚫 ALERT: Public node is unreachable for **${endpoint.name}** after 3 retry attempts. Cannot perform sync check.`;
+                const content = `🚫 ALERT: Public node is unreachable for **${endpoint.name}** after 3 retry attempts. Cannot perform sync check.\n` +
+                               `RPC URL: ${endpoint.publicUrl}`;
                 await this.sendWebhookMessage(content);
                 return;
             }
