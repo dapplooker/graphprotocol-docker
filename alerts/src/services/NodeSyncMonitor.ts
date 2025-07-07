@@ -11,6 +11,7 @@ export class NodeSyncMonitor {
     private webhookUrl: string;
     private blockThreshold: number;
     private retryDelay: number; // in milliseconds
+    private discordTags: string;
 
     constructor() {
         this.blockThreshold = parseInt(process.env.BLOCK_THRESHOLD || "100", 10);
@@ -22,6 +23,10 @@ export class NodeSyncMonitor {
             throw new Error("DISCORD_WEBHOOK_URL environment variable is required");
         }
         this.webhookUrl = webhookUrl;
+
+        // Load Discord tags from environment variable
+        this.discordTags = this.formatDiscordMentions(process.env.DISCORD_USER_ID_TAGS || "");
+        console.log(`NodeSyncMonitor::constructor::Discord tags configured: ${this.discordTags}`);
 
         // Load node endpoints
         this.nodeEndpoints = this.loadNodeEndpoints();
@@ -129,7 +134,9 @@ export class NodeSyncMonitor {
         const delay = publicBlock - localBlock;
         const content = `⚠️ **${nodeName}** node is behind by **${delay}** blocks.\n` +
                        `Local block: ${localBlock}\n` +
-                       `Public block: ${publicBlock}`;
+                       `Public block: ${publicBlock}\n` +
+                       `Please investigate the sync lag issue.\n` +
+                       `${this.discordTags}`;
 
         try {
             await this.sendWebhookMessage(content);
@@ -141,7 +148,9 @@ export class NodeSyncMonitor {
 
     private async sendNodeDownAlert(nodeName: string, nodeUrl: string): Promise<void> {
         const content = `🚫 ALERT: **${nodeName}** node is **unreachable** after retry. Node might be **down**.\n` +
-                       `RPC URL: ${nodeUrl}`;
+                       `RPC URL: ${nodeUrl}\n` +
+                       `Please investigate & check node status.\n` +
+                       `${this.discordTags}`;
 
         try {
             await this.sendWebhookMessage(content);
@@ -153,6 +162,18 @@ export class NodeSyncMonitor {
 
     private async sleep(ms: number): Promise<void> {
         return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    private formatDiscordMentions(ids: string): string {
+        if (!ids) {
+            console.log("NodeSyncMonitor::formatDiscordMentions::No id received");
+            return "";
+        }
+
+        return ids
+            .split(",")
+            .map(id => `<@${id.trim()}>`)
+            .join(" ");
     }
 
     private async getLatestBlockWithRetry(nodeUrl: string, nodeType: string, nodeName: string): Promise<number | null> {
@@ -221,7 +242,9 @@ export class NodeSyncMonitor {
 
             if (publicBlock === null) {
                 const content = `🚫 ALERT: Public node is unreachable for **${endpoint.name}** after 3 retry attempts. Cannot perform sync check.\n` +
-                               `RPC URL: ${endpoint.publicUrl}`;
+                               `RPC URL: ${endpoint.publicUrl}\n` +
+                               `Please investigate the public node connection issue.\n` +
+                               `${this.discordTags}`;
                 await this.sendWebhookMessage(content);
                 return;
             }
