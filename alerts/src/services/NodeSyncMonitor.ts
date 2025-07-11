@@ -130,21 +130,43 @@ export class NodeSyncMonitor {
         }
     }
 
-    private async sendDiscordAlert(localBlock: number, publicBlock: number, nodeName: string): Promise<void> {
-        const delay = publicBlock - localBlock;
-        const content = `⚠️ **${nodeName}** node is behind by **${delay}** blocks.\n` +
-                       `Local block: ${localBlock}\n` +
-                       `Public block: ${publicBlock}\n` +
-                       `Please investigate the sync lag issue.\n` +
-                       `${this.discordTags}`;
-
+    private async sendSyncAlert(
+        localBlock: number,
+        publicBlock: number,
+        nodeName: string,
+        localUrl: string,
+        publicUrl: string
+    ): Promise<void> {
+        const delay = Math.abs(publicBlock - localBlock);
+        const isLocalBehind = publicBlock > localBlock;
+    
+        let content = '';
+    
+        if (isLocalBehind) {
+            // Local node is behind
+            content = `⚠️ **${nodeName}** local node is **behind** by **${delay}** blocks.\n` +
+                      `Local block: ${localBlock}\n` +
+                      `Public block: ${publicBlock}\n` +
+                      `Local RPC URL: ${localUrl}\n` +
+                      `Please investigate the sync lag issue.\n` +
+                      `${this.discordTags}`;
+        } else {
+            // Public node is behind
+            content = `⚠️ **${nodeName}** public node is **behind** by **${delay}** blocks.\n` +
+                      `Local block: ${localBlock}\n` +
+                      `Public block: ${publicBlock}\n` +
+                      `Public RPC URL: ${publicUrl}\n` +
+                      `Please consider switching to a different public node.\n` +
+                      `${this.discordTags}`;
+        }
+    
         try {
             await this.sendWebhookMessage(content);
-            console.log(`NodeSyncMonitor::sendDiscordAlert::Alert sent to Discord for ${nodeName}`);
+            console.log(`NodeSyncMonitor::sendSyncAlert::Alert sent for ${nodeName} (${isLocalBehind ? 'local behind' : 'public behind'})`);
         } catch (error) {
-            console.error(`NodeSyncMonitor::sendDiscordAlert::Failed to send Discord alert for ${nodeName}:`, error);
+            console.error(`NodeSyncMonitor::sendSyncAlert::Failed to send Discord alert for ${nodeName}:`, error);
         }
-    }
+    }        
 
     private async sendNodeDownAlert(nodeName: string, nodeUrl: string): Promise<void> {
         const content = `🚫 ALERT: **${nodeName}** node is **unreachable** after retry. Node might be **down**.\n` +
@@ -227,33 +249,34 @@ export class NodeSyncMonitor {
     private async monitorSingleNodeEndpoint(endpoint: NodeEndpoint): Promise<void> {
         try {
             console.log(`NodeSyncMonitor::monitorSingleNodeEndpoint::Starting sync check for ${endpoint.name}`);
-
+    
             // Get local block number
             const localBlock = await this.getLatestBlockWithRetry(endpoint.localUrl, "local", endpoint.name);
 
             // Get public block number
             const publicBlock = await this.getLatestBlockWithRetry(endpoint.publicUrl, "public", endpoint.name);
-
+    
             // Send alert if either node is unreachable
             if (localBlock === null) {
                 await this.sendNodeDownAlert(endpoint.name, endpoint.localUrl);
                 return;
             }
-
+    
             if (publicBlock === null) {
                 const content = `🚫 ALERT: Public node is unreachable for **${endpoint.name}** after 3 retry attempts. Cannot perform sync check.\n` +
                                `RPC URL: ${endpoint.publicUrl}\n` +
-                               `Please investigate the public node connection issue.\n` +
-                               `${this.discordTags}`;
+                                `Please investigate the public node connection issue.\n` +
+                                `${this.discordTags}`;
                 await this.sendWebhookMessage(content);
                 return;
             }
-
+    
             console.log(`NodeSyncMonitor::monitorSingleNodeEndpoint::${endpoint.name} - Local block: ${localBlock}, Public block: ${publicBlock}`);
-
-            // Check if node is behind by more than threshold
-            if (publicBlock - localBlock > this.blockThreshold) {
-                await this.sendDiscordAlert(localBlock, publicBlock, endpoint.name);
+    
+             // Check if node is behind by more than threshold
+            const blockDiff = publicBlock - localBlock;
+            if (Math.abs(blockDiff) > this.blockThreshold) {
+                await this.sendSyncAlert(localBlock, publicBlock, endpoint.name, endpoint.localUrl, endpoint.publicUrl);
             } else {
                 console.log(`NodeSyncMonitor::monitorSingleNodeEndpoint::${endpoint.name} is synced within acceptable range.`);
             }
@@ -261,5 +284,5 @@ export class NodeSyncMonitor {
             console.error(`NodeSyncMonitor::monitorSingleNodeEndpoint::Failed for ${endpoint.name}:`, error);
             throw error;
         }
-    }
+    }   
 } 
