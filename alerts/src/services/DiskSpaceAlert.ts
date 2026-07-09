@@ -122,16 +122,40 @@ export class DiskSpaceAlert {
     }
 
     private deleteLogFiles(): void {
-        try {
-            // Execute cleanup commands while waiting for results
-            execSync("journalctl --vacuum-size=500M");
-            execSync("rm -rf /var/log/*.gz");
-            execSync("npm cache clean --force");
-            execSync("truncate -s 500M /var/log/syslog.1");
-            console.log("DiskSpaceAlert::deleteLogFiles::Old syslog files deleted.");
-        } catch (error) {
-            console.error("DiskSpaceAlert::deleteLogFiles::Failed to delete log files:", error);
+        // Generic, safe cleanup. Each command targets reclaimable caches,
+        // rotated/compressed logs or runtime temp files only, so nothing an
+        // application needs at runtime is removed. Commands run independently
+        // so a failure or a path missing on a given server never blocks the rest.
+        const cleanupCommands: string[] = [
+            // Trim the systemd journal to a small retained window.
+            "journalctl --vacuum-size=200M || true",
+            "journalctl --vacuum-time=3d || true",
+            // Remove rotated / compressed logs (foo.gz, foo.1, foo.old, foo.log.2 ...).
+            "find /var/log -type f -regextype posix-extended -regex '.*\\.(gz|old|xz|[0-9]+)$' -delete || true",
+            // Empty the current syslog.1 in place instead of padding it to a fixed size.
+            "truncate -s 0 /var/log/syslog.1 2>/dev/null || true",
+            // Truncate running Docker container logs without stopping the containers.
+            "truncate -s 0 /var/lib/docker/containers/*/*-json.log 2>/dev/null || true",
+            // Drop dangling Docker images and build cache (never tagged or in use).
+            "command -v docker >/dev/null 2>&1 && docker image prune -f || true",
+            "command -v docker >/dev/null 2>&1 && docker builder prune -f || true",
+            // Package-manager caches, re-downloaded on demand.
+            "apt-get clean || true",
+            "npm cache clean --force || true",
+            // Stale Chromium / Puppeteer temp profiles and old temp files.
+            "rm -rf /tmp/puppeteer_dev_* /tmp/.org.chromium.Chromium.* /tmp/.com.google.Chrome.* 2>/dev/null || true",
+            "find /tmp -mindepth 1 -type f -atime +3 -delete 2>/dev/null || true",
+        ];
+
+        for (const command of cleanupCommands) {
+            try {
+                execSync(command, { stdio: "pipe" });
+            } catch (error) {
+                console.error(`DiskSpaceAlert::deleteLogFiles::Command failed: ${command}`, error);
+            }
         }
+
+        console.log("DiskSpaceAlert::deleteLogFiles::Cleanup commands executed.");
     }
 
     private async checkDiskSpaceAfterCleanup(): Promise<void> {
